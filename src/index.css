@@ -1,0 +1,60 @@
+/* type-beats — global resets
+   Per concept: dark mode único, no Tailwind, CSS Modules per component
+   Background #0a0e1a, text minimal */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #0a0e1a;
+  color: #e8eaed;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Hide cursor during play (toggled via JS body class) */
+body.hide-cursor {
+  cursor: none;
+}
+
+/* Note color tokens — used by CSS Modules */
+:root {
+  --note-c: #ff5470;
+  --note-d: #ff8b3d;
+  --note-e: #ffd83d;
+  --note-f: #4ade80;
+  --note-g: #4adee8;
+  --note-a: #4a8eff;
+  --note-b: #a04aff;
+  --hit-line: #ffffff;
+  --hit-line-glow: #ffffff20;
+  --piano-outline: #ffffff;
+  --piano-pressed: #ffffff;
+  --status-text: #5a6478;
+  --bg-deep: #0a0e1a;
+}
