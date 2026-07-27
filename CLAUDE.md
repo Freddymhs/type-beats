@@ -69,3 +69,7 @@ npm run test:e2e     # playwright test
 - ❌ NO agregar UI tradicional (botones, menús, modals) — concept es keyboard-first flow state
 - ❌ NO commitear credenciales ni secrets
 - ❌ NO usar `Date.now()` ni `Math.random()` en handlers (React 19 purity rule)
+
+## Skills activas del proyecto
+
+Ver `.claude/skills-lock.json` — invocar esas skills proactivamente cuando el contexto aplique.

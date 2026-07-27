@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "installedAt": "2026-07-26",
+  "skills": {
+    "chrome-interactive": {
+      "source": "custom:~/.claude/skills/chrome-interactive",
+      "reason": "Debug visual autonomo para UI F1 (visual piano, falling notes, PWA state)",
+      "skillInstalledAt": "2026-07-26"
+    }
+  }
+}
