@@ -1,27 +1,38 @@
+/**
+ * App — router shell.
+ *
+ * F1 routes:
+ *   /            → redirect to /play
+ *   /play        → QWERTY chiptune studio (F1 core)
+ *   /settings    → F2 placeholder
+ *
+ * Layout wraps every route via a parent route with <Outlet />.
+ * SW registration happens via vite-plugin-pwa's virtual module below.
+ */
+
 import { useRegisterSW } from 'virtual:pwa-register/react'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
-import styles from './App.module.css'
+import { Layout } from './components/Layout/index.ts'
+import { Play } from './pages/Play/index.ts'
+import { Settings } from './pages/Settings/index.ts'
 
-const APP_NAME = 'type-beats'
-const APP_DESCRIPTION = 'QWERTY chiptune studio para pausas de estudio.'
+const REDIRECT_REPLACE = { replace: true } as const
 
-function App() {
-  const { offlineReady } = useRegisterSW()
-  const [isOfflineReady] = offlineReady
+const App = () => {
+  useRegisterSW({ immediate: true })
 
   return (
-    <main className={styles.app}>
-      <h1 className={styles.title}>{APP_NAME}</h1>
-      <p className={styles.description}>{APP_DESCRIPTION}</p>
-      <section aria-label="Estado del service worker" className={styles.status}>
-        <p>
-          Service worker:{' '}
-          <span className={isOfflineReady ? styles.ready : styles.pending}>
-            {isOfflineReady ? 'listo para uso offline' : 'registrando...'}
-          </span>
-        </p>
-      </section>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Navigate to="/play" {...REDIRECT_REPLACE} />} />
+          <Route path="/play" element={<Play />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="*" element={<Navigate to="/play" {...REDIRECT_REPLACE} />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
 
