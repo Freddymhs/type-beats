@@ -21,10 +21,13 @@ import { useTransportClock } from '../../audio/useTransportClock.ts'
 import type { RootState } from '../../store/index.ts'
 
 import {
+  NOTATION_CHORDS_PER_STAVE,
+  NOTATION_CONTAINER_PADDING,
   NOTATION_DEFAULT_FILL,
-  NOTATION_HEIGHT,
+  NOTATION_HEIGHT_PER_STAVE,
   NOTATION_HIGHLIGHT_FILL,
   NOTATION_PADDING,
+  NOTATION_STAVE_GAP,
   NOTATION_STAVE_WIDTH,
   NOTATION_STAVE_X,
   NOTATION_STAVE_Y,
@@ -41,39 +44,61 @@ const isChordActive = (startTime: number, currentTime: number): boolean =>
   currentTime >= startTime - HIGHLIGHT_LOOK_BEHIND_SECONDS &&
   currentTime <= startTime + HIGHLIGHT_LOOK_AHEAD_SECONDS
 
+const chunkChords = <T,>(
+  items: ReadonlyArray<T>,
+  size: number,
+): ReadonlyArray<ReadonlyArray<T>> => {
+  if (items.length === 0 || size <= 0) return []
+  const chunks: T[][] = []
+  for (let i = 0; i < items.length; i += size) {
+    chunks.push(items.slice(i, i + size))
+  }
+  return chunks
+}
+
 const renderNotation = (
   container: HTMLDivElement,
   chords: ReturnType<typeof toNotationChords>,
   width: number,
-  height: number,
 ): (() => void) => {
   container.replaceChildren()
   if (chords.length === 0) return () => undefined
 
+  const chunks = chunkChords(chords, NOTATION_CHORDS_PER_STAVE)
+  const totalHeight =
+    chunks.length * NOTATION_HEIGHT_PER_STAVE +
+    Math.max(0, chunks.length - 1) * NOTATION_STAVE_GAP +
+    NOTATION_CONTAINER_PADDING
+
   const renderer = new Renderer(container, Renderer.Backends.SVG)
-  renderer.resize(width, height)
+  renderer.resize(width, totalHeight)
   const context = renderer.getContext()
   context.setFillStyle(NOTATION_DEFAULT_FILL)
 
-  const stave = new Stave(NOTATION_STAVE_X, NOTATION_STAVE_Y, NOTATION_STAVE_WIDTH)
-  stave.setContext(context).draw()
+  chunks.forEach((chunk, staveIndex) => {
+    const staveY = NOTATION_STAVE_Y + staveIndex * (NOTATION_HEIGHT_PER_STAVE + NOTATION_STAVE_GAP)
+    const stave = new Stave(NOTATION_STAVE_X, staveY, NOTATION_STAVE_WIDTH)
+    stave.setContext(context).draw()
 
-  const staveNotes = buildStaveNotes(chords)
-  const voice = new Voice({
-    num_beats: Math.max(1, staveNotes.length),
-    beat_value: 4,
-  }).setStrict(false)
-  voice.addTickables(staveNotes)
+    const staveNotes = buildStaveNotes(chunk)
+    const voice = new Voice({
+      num_beats: Math.max(1, staveNotes.length),
+      beat_value: 4,
+    }).setStrict(false)
+    voice.addTickables(staveNotes)
 
-  new Formatter().joinVoices([voice]).format([voice], NOTATION_STAVE_WIDTH)
-  voice.draw(context, stave)
+    new Formatter().joinVoices([voice]).format([voice], NOTATION_STAVE_WIDTH)
+    voice.draw(context, stave)
+  })
 
   const svg = container.querySelector('svg')
   if (svg !== null) {
     svg.setAttribute('class', styles.stave ?? '')
     svg.setAttribute('width', String(width))
-    svg.setAttribute('height', String(height))
-    // Tag every chord's <g> so the highlight pass can find them by index.
+    svg.setAttribute('height', String(totalHeight))
+    svg.setAttribute('viewBox', `0 0 ${width} ${totalHeight}`)
+    // Tag every chord's <g> with its global chord index so the highlight
+    // pass can find them by index across all staves.
     const noteGroups = svg.querySelectorAll<SVGGElement>('g.vf-stavenote')
     noteGroups.forEach((group, idx) => {
       group.setAttribute('data-notation-chord', String(idx))
@@ -82,9 +107,6 @@ const renderNotation = (
   }
 
   return () => {
-    staveNotes.forEach((n) => {
-      n.getSVGElement?.()?.remove?.()
-    })
     context.clear()
   }
 }
@@ -115,7 +137,7 @@ export const Notation = () => {
   useEffect(() => {
     const container = containerRef.current
     if (container === null) return
-    const cleanup = renderNotation(container, chords, NOTATION_WIDTH, NOTATION_HEIGHT)
+    const cleanup = renderNotation(container, chords, NOTATION_WIDTH)
     return cleanup
   }, [chords])
 
@@ -148,7 +170,7 @@ export const Notation = () => {
         <div
           ref={containerRef}
           className={styles.canvas}
-          style={{ width: NOTATION_WIDTH, height: NOTATION_HEIGHT, padding: NOTATION_PADDING }}
+          style={{ width: NOTATION_WIDTH, padding: NOTATION_PADDING }}
         />
       ) : null}
     </div>
