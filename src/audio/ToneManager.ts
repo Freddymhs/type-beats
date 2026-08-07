@@ -17,6 +17,8 @@
  */
 
 import * as Tone from 'tone'
+
+import { getTimbreSpec } from './timbreRegistry.ts'
 import type { Envelope, MidiPitch, Timbre, Velocity } from '../types/index.ts'
 
 const DEFAULT_TIMBRE_ID = 'square'
@@ -82,6 +84,8 @@ export class ToneManager {
   /**
    * Compile a Timbre into a live PolySynth(Synth) and make it the active synth.
    * Existing synths are kept (warm pool) — only one is connected at a time.
+   * The optional timbreRegistry spec adds per-timbre signal chains
+   * (e.g. ocarina's vibrato + lowpass filter).
    */
   swapSynth(timbre: Timbre): void {
     const { id } = timbre
@@ -94,6 +98,10 @@ export class ToneManager {
         options: envelopeToToneOptions(timbre.envelope),
       }
       synth = new Tone.PolySynth(polyOptions as unknown as Tone.PolySynthOptions<Tone.Synth>)
+      const spec = getTimbreSpec(id)
+      if (spec?.buildChain !== undefined) {
+        spec.buildChain(synth)
+      }
       this.synths.set(id, synth)
     }
 

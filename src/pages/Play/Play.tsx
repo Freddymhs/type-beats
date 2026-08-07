@@ -15,9 +15,13 @@ import { useSelector } from 'react-redux'
 import { useQwertyInput } from '../../keyboard/useQwertyInput.ts'
 import { useGlobalKeyEvents } from '../../keyboard/useGlobalKeyEvents.ts'
 import { useToneManager } from '../../audio/ToneContext.tsx'
+import { TIMBRE_HOTKEY_DIGITS } from '../../audio/timbreRegistry.ts'
 import { VisualPiano } from '../../components/VisualPiano/index.ts'
 import { FallingNotes } from '../../components/FallingNotes/index.ts'
 import { useTransportActions } from '../../songs/useTransportActions.ts'
+import { useAppDispatch } from '../../store/hooks.ts'
+import { audioActions } from '../../store/audioSlice.ts'
+import { DEFAULT_TIMBRES } from '../../types/index.ts'
 import type { RootState } from '../../store/index.ts'
 
 import styles from './Play.module.css'
@@ -35,6 +39,7 @@ const Play = () => {
 
   const { noteOn, noteOff, panic } = useQwertyInput({ velocity })
   const transport = useTransportActions()
+  const dispatch = useAppDispatch()
 
   const handleUnlock = useCallback(() => {
     void toneManager.start().then(() => {
@@ -60,6 +65,20 @@ const Play = () => {
     (event: KeyboardEvent) => {
       if (event.repeat) return
       ensureStarted()
+
+      // Alt+digit → switch timbre (Alt+1..5). Hotkey consumes the key so
+      // no noteOn runs.
+      if (event.altKey && !event.ctrlKey && !event.metaKey) {
+        const digitIndex = TIMBRE_HOTKEY_DIGITS.indexOf(event.key)
+        if (digitIndex !== -1 && digitIndex < DEFAULT_TIMBRES.length) {
+          event.preventDefault()
+          const timbre = DEFAULT_TIMBRES[digitIndex]
+          if (timbre !== undefined) {
+            dispatch(audioActions.setSelectedTimbre(timbre.id))
+          }
+          return
+        }
+      }
 
       // Transport shortcuts first — they consume the key before any
       // noteOn attempt.
@@ -97,7 +116,7 @@ const Play = () => {
 
       noteOn(event.key)
     },
-    [ensureStarted, noteOn, transport],
+    [ensureStarted, noteOn, transport, dispatch],
   )
 
   const onKeyUp = useCallback(
