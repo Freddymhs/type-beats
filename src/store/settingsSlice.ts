@@ -15,6 +15,7 @@ export interface SettingsState {
   readonly velocityCurve: VelocityCurve
   readonly theme: Theme
   readonly defaultTimbreId: string
+  readonly showFallingNotes: boolean
 }
 
 const MIN_OCTAVE = 0
@@ -31,6 +32,7 @@ const initialState: SettingsState = {
   velocityCurve: 'log',
   theme: 'dark',
   defaultTimbreId: 'square',
+  showFallingNotes: true,
 }
 
 export const settingsSlice = createSlice({
@@ -48,6 +50,12 @@ export const settingsSlice = createSlice({
     },
     setDefaultTimbreId(state, action: PayloadAction<string>) {
       state.defaultTimbreId = action.payload
+    },
+    setShowFallingNotes(state, action: PayloadAction<boolean>) {
+      state.showFallingNotes = action.payload
+    },
+    toggleFallingNotes(state) {
+      state.showFallingNotes = !state.showFallingNotes
     },
   },
 })

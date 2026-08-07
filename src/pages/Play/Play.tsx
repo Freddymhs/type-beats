@@ -18,6 +18,7 @@ import { useQwertyInput } from '../../keyboard/useQwertyInput.ts'
 import { useGlobalKeyEvents } from '../../keyboard/useGlobalKeyEvents.ts'
 import { useToneManager } from '../../audio/ToneContext.tsx'
 import { VisualPiano } from '../../components/VisualPiano/index.ts'
+import { FallingNotes } from '../../components/FallingNotes/index.ts'
 import type { RootState } from '../../store/index.ts'
 
 import styles from './Play.module.css'
@@ -79,6 +80,7 @@ const Play = () => {
   return (
     <section className={styles.play} aria-label="Play page">
       {!audioUnlocked && <UnlockGate onUnlock={handleUnlock} />}
+      <FallingNotes />
       <VisualPiano />
     </section>
   )
