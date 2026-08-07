@@ -80,5 +80,10 @@
 }
 
 .hidden {
-  display: none;
+  /* Hidden but keeps its flex slot — toggling F must not collapse the
+     layout and shift the rest of the page. visibility + opacity + a tiny
+     pointer-events block still feel like "off" visually. */
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
 }
