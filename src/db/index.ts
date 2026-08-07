@@ -12,8 +12,11 @@
  *   - Hydration Dexie ↔ RTK lands in F1 via createListenerMiddleware.
  *   - This module is pure data access — no React, no Redux imports.
  *
- * Schema version 1: minimal viable tables. Bump version + add upgrade()
- * when adding columns or tables (never edit v1 in place).
+ * Schema versions:
+ *   - v1: minimal viable tables.
+ *   - v2 (F2): adds `sectionsMastered` to `progress` rows for loop-region
+ *     completion tracking. Never edit prior versions in place — always
+ *     bump and add upgrade().
  */
 
 import Dexie, { type Table } from 'dexie'
@@ -26,6 +29,7 @@ export interface ProgressRow {
   readonly bestScore: number
   readonly lastPlayedAt: number
   readonly timesPlayed: number
+  readonly sectionsMastered: number
 }
 
 export interface SettingsRow {
@@ -57,6 +61,28 @@ export class TypeBeatsDB extends Dexie {
       [PROGRESS_TABLE]: 'songId, lastPlayedAt',
       [SETTINGS_TABLE]: 'id',
     })
+    // v2: progress row gains `sectionsMastered` (count of loop regions
+    // the user has cleared end-to-end). Schema string unchanged because
+    // Dexie only cares about indexed columns — the new field is unindexed.
+    this.version(2)
+      .stores({
+        [SONGS_TABLE]: 'id, source, name',
+        [LAYOUTS_TABLE]: 'id',
+        [PROGRESS_TABLE]: 'songId, lastPlayedAt',
+        [SETTINGS_TABLE]: 'id',
+      })
+      .upgrade(async (tx) => {
+        // Backfill `sectionsMastered: 0` on every existing progress row
+        // so consumers can rely on the field being present after v2.
+        await tx
+          .table<ProgressRow>(PROGRESS_TABLE)
+          .toCollection()
+          .modify((row) => {
+            if ((row as { sectionsMastered?: number }).sectionsMastered === undefined) {
+              ;(row as { sectionsMastered: number }).sectionsMastered = 0
+            }
+          })
+      })
   }
 }
 
