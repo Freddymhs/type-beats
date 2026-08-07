@@ -76,9 +76,9 @@ export const getDB = (): TypeBeatsDB => {
 /**
  * Test-only reset hook. Closes the DB and clears the singleton.
  */
-export const __resetDBForTests = async (): Promise<void> => {
+export const __resetDBForTests = (): void => {
   if (dbInstance !== null) {
-    await dbInstance.close()
+    dbInstance.close()
     dbInstance = null
   }
 }
