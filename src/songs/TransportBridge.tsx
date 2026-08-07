@@ -19,11 +19,13 @@ import { useToneManager } from '../audio/ToneContext.tsx'
 import { getSongTransport } from './SongTransport.ts'
 import { PD_STARTER_SONGS } from './index.ts'
 import type { RootState } from '../store/index.ts'
+import { progressActions } from '../store/progressSlice.ts'
 import { songsActions } from '../store/songsSlice.ts'
 import type { Song } from '../types/index.ts'
 import { useAppDispatch } from '../store/hooks.ts'
 
 const DEFAULT_SONG_ID = PD_STARTER_SONGS[0]?.id ?? null
+const SECTION_MASTERED_COOLDOWN_SECONDS = 0.5
 
 export const TransportBridge = () => {
   const toneManager = useToneManager()
@@ -38,6 +40,14 @@ export const TransportBridge = () => {
   const loopEnd = useSelector((state: RootState) => state.songs.loopEnd)
   const loopEnabled = useSelector((state: RootState) => state.songs.loopEnabled)
   const lastWrapRef = useRef<number>(0)
+  const lastEndRef = useRef<number>(-1)
+  const lastSectionRef = useRef<number>(-1)
+
+  const activeSong = activeSongId === null ? null : (songsById[activeSongId] ?? null)
+  const songDuration =
+    activeSong === null
+      ? 0
+      : activeSong.notes.reduce((max, note) => Math.max(max, note.startTime + note.duration), 0)
 
   // Hydrate PD starter songs on mount (idempotent — upsertSong skips existing).
   useEffect(() => {
@@ -59,27 +69,57 @@ export const TransportBridge = () => {
     transport.loadSong(song, tempoMultiplier)
   }, [transport, activeSongId, songsById, tempoMultiplier])
 
-  // Loop wrap: when transport time passes `loopEnd`, jump back to `loopStart`.
+  // Loop wrap + progress tracking: when transport time passes `loopEnd`,
+  // jump back to `loopStart` and emit a `recordSectionMastered` event.
+  // When transport time reaches song end, dispatch `recordPlay`.
   // Driven by rAF so it stays in sync with `Tone.Transport.currentTime`.
-  // Cooldown (`lastWrapRef`) prevents double-wrap on a single crossing.
   useEffect(() => {
-    if (!loopEnabled) return
-    if (loopStart === null || loopEnd === null) return
-    if (loopEnd <= loopStart) return
+    if (activeSong === null) return
     let rafId = 0
     const tick = () => {
       const position = transport.getCurrentPositionSeconds()
-      if (position >= loopEnd && position - lastWrapRef.current > 0.05) {
-        transport.jumpTo(loopStart)
-        lastWrapRef.current = position
+
+      if (loopEnabled && loopStart !== null && loopEnd !== null && loopEnd > loopStart) {
+        if (position >= loopEnd && position - lastWrapRef.current > 0.05) {
+          if (
+            lastSectionRef.current < 0 ||
+            position - lastSectionRef.current > SECTION_MASTERED_COOLDOWN_SECONDS
+          ) {
+            dispatch(
+              progressActions.recordSectionMastered({
+                songId: activeSong.id,
+                timestamp: Date.now(),
+              }),
+            )
+            lastSectionRef.current = position
+          }
+          transport.jumpTo(loopStart)
+          lastWrapRef.current = position
+        }
       }
+
+      if (
+        songDuration > 0 &&
+        position >= songDuration &&
+        (lastEndRef.current < 0 || position - lastEndRef.current > songDuration + 1)
+      ) {
+        dispatch(
+          progressActions.recordPlay({
+            songId: activeSong.id,
+            score: 1,
+            timestamp: Date.now(),
+          }),
+        )
+        lastEndRef.current = position
+      }
+
       rafId = requestAnimationFrame(tick)
     }
     rafId = requestAnimationFrame(tick)
     return () => {
       cancelAnimationFrame(rafId)
     }
-  }, [transport, loopEnabled, loopStart, loopEnd])
+  }, [transport, activeSong, loopEnabled, loopStart, loopEnd, songDuration, dispatch])
 
   return null
 }

@@ -1,5 +1,5 @@
 /**
- * Redux store — F0 skeleton.
+ * Redux store — F0 skeleton + F2 listener middleware.
  *
  * Slices (per CLAUDE.md discipline):
  *   - audio     → Tone.js selection state (selectedTimbreId, masterVolume)
@@ -9,13 +9,15 @@
  *   - progress  → per-song practice data (F0 placeholder)
  *
  * Tone.js lives in ToneManager singleton — never in store.
- * Full Dexie hydration via createListenerMiddleware arrives in F1.
+ * Dexie write bridge: `progressListenerMiddleware` (F2) throttles
+ * per-song progress writes.
  */
 
 import { configureStore } from '@reduxjs/toolkit'
 
 import { audioReducer } from './audioSlice.ts'
 import { layoutReducer } from './layoutSlice.ts'
+import { progressListenerMiddleware } from './progressMiddleware.ts'
 import { progressReducer } from './progressSlice.ts'
 import { settingsReducer } from './settingsSlice.ts'
 import { songsReducer } from './songsSlice.ts'
@@ -29,6 +31,8 @@ export const createStore = () =>
       layout: layoutReducer,
       progress: progressReducer,
     },
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware().prepend(progressListenerMiddleware.middleware),
   })
 
 export const store = createStore()
