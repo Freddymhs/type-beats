@@ -8,6 +8,10 @@
   overflow-x: auto;
 }
 
+.wrapper[data-visible='false'] {
+  display: none;
+}
+
 .canvas {
   display: flex;
   align-items: center;

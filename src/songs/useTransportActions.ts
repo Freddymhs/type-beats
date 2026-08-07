@@ -47,6 +47,7 @@ export interface TransportActions {
   readonly octaveUp: () => void
   readonly octaveDown: () => void
   readonly toggleFallingNotes: () => void
+  readonly toggleNotation: () => void
 }
 
 const timbreIdAt = (index: number): string | undefined => DEFAULT_TIMBRES[index]?.id
@@ -122,6 +123,10 @@ export const useTransportActions = (): TransportActions => {
     dispatch(settingsActions.toggleFallingNotes())
   }, [dispatch])
 
+  const toggleNotation = useCallback(() => {
+    dispatch(settingsActions.toggleNotation())
+  }, [dispatch])
+
   return {
     cycleNext,
     cyclePrev,
@@ -134,5 +139,6 @@ export const useTransportActions = (): TransportActions => {
     octaveUp,
     octaveDown,
     toggleFallingNotes,
+    toggleNotation,
   }
 }

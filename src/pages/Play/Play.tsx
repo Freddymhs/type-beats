@@ -18,6 +18,7 @@ import { useToneManager } from '../../audio/ToneContext.tsx'
 import { TIMBRE_HOTKEY_DIGITS } from '../../audio/timbreRegistry.ts'
 import { VisualPiano } from '../../components/VisualPiano/index.ts'
 import { FallingNotes } from '../../components/FallingNotes/index.ts'
+import { Notation } from '../../components/Notation/index.ts'
 import { useTransportActions } from '../../songs/useTransportActions.ts'
 import { useAppDispatch } from '../../store/hooks.ts'
 import { audioActions } from '../../store/audioSlice.ts'
@@ -121,6 +122,12 @@ const Play = () => {
           transport.toggleFallingNotes()
           return
         }
+        case 'n':
+        case 'N': {
+          event.preventDefault()
+          transport.toggleNotation()
+          return
+        }
         case 'Z':
         case 'z': {
           if (event.shiftKey) {
@@ -172,6 +179,7 @@ const Play = () => {
   return (
     <section className={styles.play} aria-label="Play page">
       {!audioUnlocked && <UnlockGate onUnlock={handleUnlock} />}
+      <Notation />
       <FallingNotes />
       <VisualPiano />
       <PortraitNotice />

@@ -16,6 +16,7 @@ export interface SettingsState {
   readonly theme: Theme
   readonly defaultTimbreId: string
   readonly showFallingNotes: boolean
+  readonly showNotation: boolean
 }
 
 const MIN_OCTAVE = 0
@@ -33,6 +34,7 @@ const initialState: SettingsState = {
   theme: 'dark',
   defaultTimbreId: 'square',
   showFallingNotes: true,
+  showNotation: true,
 }
 
 export const settingsSlice = createSlice({
@@ -56,6 +58,12 @@ export const settingsSlice = createSlice({
     },
     toggleFallingNotes(state) {
       state.showFallingNotes = !state.showFallingNotes
+    },
+    setShowNotation(state, action: PayloadAction<boolean>) {
+      state.showNotation = action.payload
+    },
+    toggleNotation(state) {
+      state.showNotation = !state.showNotation
     },
   },
 })

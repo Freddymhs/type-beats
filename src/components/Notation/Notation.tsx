@@ -97,6 +97,7 @@ export const Notation = () => {
     return id === null ? null : (state.songs.byId[id] ?? null)
   })
   const tempoMultiplier = useSelector((state: RootState) => state.songs.tempoMultiplier)
+  const showNotation = useSelector((state: RootState) => state.settings.showNotation)
   const { currentTime } = useTransportClock()
 
   const chords = useMemo(() => {
@@ -142,12 +143,14 @@ export const Notation = () => {
   }, [activeChordIndex])
 
   return (
-    <div className={styles.wrapper} aria-label="Music notation">
-      <div
-        ref={containerRef}
-        className={styles.canvas}
-        style={{ width: NOTATION_WIDTH, height: NOTATION_HEIGHT, padding: NOTATION_PADDING }}
-      />
+    <div className={styles.wrapper} aria-label="Music notation" data-visible={showNotation}>
+      {showNotation ? (
+        <div
+          ref={containerRef}
+          className={styles.canvas}
+          style={{ width: NOTATION_WIDTH, height: NOTATION_HEIGHT, padding: NOTATION_PADDING }}
+        />
+      ) : null}
     </div>
   )
 }
