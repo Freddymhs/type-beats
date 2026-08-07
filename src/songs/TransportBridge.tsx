@@ -17,7 +17,7 @@ import { useSelector } from 'react-redux'
 
 import { useToneManager } from '../audio/ToneContext.tsx'
 import { getSongTransport } from './SongTransport.ts'
-import { PD_STARTER_SONGS } from './index.ts'
+import { CURATED_SONGS, PD_STARTER_SONGS } from './index.ts'
 import type { RootState } from '../store/index.ts'
 import { progressActions } from '../store/progressSlice.ts'
 import { songsActions } from '../store/songsSlice.ts'
@@ -53,6 +53,9 @@ export const TransportBridge = () => {
   useEffect(() => {
     if (allIds.length === 0) {
       for (const song of PD_STARTER_SONGS) {
+        dispatch(songsActions.upsertSong(song))
+      }
+      for (const song of CURATED_SONGS) {
         dispatch(songsActions.upsertSong(song))
       }
       if (DEFAULT_SONG_ID !== null && activeSongId === null) {

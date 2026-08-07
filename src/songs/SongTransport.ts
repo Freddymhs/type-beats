@@ -101,7 +101,11 @@ export class SongTransport {
 
   getCurrentPositionSeconds(): number {
     const transport = asTransport()
-    return transport.position ?? transport.currentTime ?? 0
+    // Tone.Transport.position is a string like "0:0:0" (bars:beats:sixteenths),
+    // not a number. Use `seconds` which returns elapsed seconds since start
+    // (or 0 before the first start). Fall back to currentTime for safety.
+    const asSecondsLike = transport as unknown as { seconds?: number }
+    return asSecondsLike.seconds ?? transport.currentTime ?? 0
   }
 
   setTempoMultiplier(song: Song, multiplier: number): void {
@@ -111,7 +115,8 @@ export class SongTransport {
 
   getStatus(): TransportStatus {
     const transport = asTransport()
-    const positionSeconds = transport.position ?? transport.currentTime ?? 0
+    const asSecondsLike = transport as unknown as { seconds?: number }
+    const positionSeconds = asSecondsLike.seconds ?? transport.currentTime ?? 0
     return { state: this.status, positionSeconds }
   }
 

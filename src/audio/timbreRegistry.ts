@@ -23,7 +23,9 @@ export interface TimbreSpec {
 
 const OCARINA_FILTER_FREQ = 1800
 const OCARINA_VIBRATO_FREQ = 5
-const OCARINA_VIBRATO_AMOUNT = 3
+// Tone.Vibrato expects amount in [0, 1]; 0.05 = ±5% pitch deviation,
+// a subtle breathy warble appropriate for an ocarina timbre.
+const OCARINA_VIBRATO_AMOUNT = 0.05
 
 const buildOcarinaChain = (synth: Tone.PolySynth<Tone.Synth>): void => {
   const filter = new Tone.Filter(OCARINA_FILTER_FREQ, 'lowpass')
