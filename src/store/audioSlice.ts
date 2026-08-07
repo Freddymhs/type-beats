@@ -20,12 +20,14 @@ export interface AudioState {
   readonly selectedTimbreId: string
   readonly masterVolume: number
   readonly lastVelocity: number
+  readonly activeNotes: ReadonlyArray<number>
 }
 
 const initialState: AudioState = {
   selectedTimbreId: FALLBACK_TIMBRE_ID,
   masterVolume: 0.8,
   lastVelocity: DEFAULT_VELOCITY,
+  activeNotes: [],
 }
 
 const clampUnit = (value: number): number => {
@@ -47,6 +49,18 @@ export const audioSlice = createSlice({
     },
     setLastVelocity(state, action: PayloadAction<number>) {
       state.lastVelocity = Math.max(0, Math.min(127, Math.trunc(action.payload)))
+    },
+    noteOn(state, action: PayloadAction<number>) {
+      const pitch = action.payload
+      if (!state.activeNotes.includes(pitch)) {
+        state.activeNotes = [...state.activeNotes, pitch]
+      }
+    },
+    noteOff(state, action: PayloadAction<number>) {
+      state.activeNotes = state.activeNotes.filter((pitch) => pitch !== action.payload)
+    },
+    panicAllNotesOff(state) {
+      state.activeNotes = []
     },
   },
 })
