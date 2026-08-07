@@ -48,6 +48,10 @@ export interface TransportActions {
   readonly octaveDown: () => void
   readonly toggleFallingNotes: () => void
   readonly toggleNotation: () => void
+  readonly markLoopIn: () => void
+  readonly markLoopOut: () => void
+  readonly toggleLoop: () => void
+  readonly clearLoop: () => void
 }
 
 const timbreIdAt = (index: number): string | undefined => DEFAULT_TIMBRES[index]?.id
@@ -127,6 +131,22 @@ export const useTransportActions = (): TransportActions => {
     dispatch(settingsActions.toggleNotation())
   }, [dispatch])
 
+  const markLoopIn = useCallback(() => {
+    dispatch(songsActions.setLoopStart(transport.getCurrentPositionSeconds()))
+  }, [dispatch, transport])
+
+  const markLoopOut = useCallback(() => {
+    dispatch(songsActions.setLoopEnd(transport.getCurrentPositionSeconds()))
+  }, [dispatch, transport])
+
+  const toggleLoop = useCallback(() => {
+    dispatch(songsActions.toggleLoop())
+  }, [dispatch])
+
+  const clearLoop = useCallback(() => {
+    dispatch(songsActions.clearLoop())
+  }, [dispatch])
+
   return {
     cycleNext,
     cyclePrev,
@@ -140,5 +160,9 @@ export const useTransportActions = (): TransportActions => {
     octaveDown,
     toggleFallingNotes,
     toggleNotation,
+    markLoopIn,
+    markLoopOut,
+    toggleLoop,
+    clearLoop,
   }
 }

@@ -38,6 +38,9 @@ export interface SongsState {
   allIds: string[]
   activeSongId: string | null
   tempoMultiplier: number
+  loopStart: number | null
+  loopEnd: number | null
+  loopEnabled: boolean
 }
 
 const MIN_TEMPO_MULTIPLIER = 0.5
@@ -54,6 +57,9 @@ const initialState: SongsState = {
   allIds: [],
   activeSongId: null,
   tempoMultiplier: DEFAULT_TEMPO_MULTIPLIER,
+  loopStart: null,
+  loopEnd: null,
+  loopEnabled: false,
 }
 
 export const songsSlice = createSlice({
@@ -97,6 +103,23 @@ export const songsSlice = createSlice({
     },
     bumpTempoMultiplier(state, action: PayloadAction<number>) {
       state.tempoMultiplier = clampTempoMultiplier(state.tempoMultiplier + action.payload)
+    },
+    setLoopStart(state, action: PayloadAction<number | null>) {
+      state.loopStart = action.payload
+    },
+    setLoopEnd(state, action: PayloadAction<number | null>) {
+      state.loopEnd = action.payload
+    },
+    setLoopEnabled(state, action: PayloadAction<boolean>) {
+      state.loopEnabled = action.payload
+    },
+    toggleLoop(state) {
+      state.loopEnabled = !state.loopEnabled
+    },
+    clearLoop(state) {
+      state.loopStart = null
+      state.loopEnd = null
+      state.loopEnabled = false
     },
   },
 })

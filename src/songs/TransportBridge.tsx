@@ -12,7 +12,7 @@
  * TransportBridge picks the first PD starter song if state is empty.
  */
 
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useSelector } from 'react-redux'
 
 import { useToneManager } from '../audio/ToneContext.tsx'
@@ -34,6 +34,10 @@ export const TransportBridge = () => {
   const allIds = useSelector((state: RootState) => state.songs.allIds)
   const activeSongId = useSelector((state: RootState) => state.songs.activeSongId)
   const tempoMultiplier = useSelector((state: RootState) => state.songs.tempoMultiplier)
+  const loopStart = useSelector((state: RootState) => state.songs.loopStart)
+  const loopEnd = useSelector((state: RootState) => state.songs.loopEnd)
+  const loopEnabled = useSelector((state: RootState) => state.songs.loopEnabled)
+  const lastWrapRef = useRef<number>(0)
 
   // Hydrate PD starter songs on mount (idempotent — upsertSong skips existing).
   useEffect(() => {
@@ -54,6 +58,28 @@ export const TransportBridge = () => {
     if (song === undefined) return
     transport.loadSong(song, tempoMultiplier)
   }, [transport, activeSongId, songsById, tempoMultiplier])
+
+  // Loop wrap: when transport time passes `loopEnd`, jump back to `loopStart`.
+  // Driven by rAF so it stays in sync with `Tone.Transport.currentTime`.
+  // Cooldown (`lastWrapRef`) prevents double-wrap on a single crossing.
+  useEffect(() => {
+    if (!loopEnabled) return
+    if (loopStart === null || loopEnd === null) return
+    if (loopEnd <= loopStart) return
+    let rafId = 0
+    const tick = () => {
+      const position = transport.getCurrentPositionSeconds()
+      if (position >= loopEnd && position - lastWrapRef.current > 0.05) {
+        transport.jumpTo(loopStart)
+        lastWrapRef.current = position
+      }
+      rafId = requestAnimationFrame(tick)
+    }
+    rafId = requestAnimationFrame(tick)
+    return () => {
+      cancelAnimationFrame(rafId)
+    }
+  }, [transport, loopEnabled, loopStart, loopEnd])
 
   return null
 }

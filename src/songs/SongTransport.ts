@@ -12,7 +12,9 @@
  * switching mid-song keeps the playback anchor stable.
  *
  * Per CLAUDE.md §0: this class is the only place that calls
- * `Tone.Transport.schedule` / `Tone.Transport.start` / `pause` / `stop`.
+ * `Tone.Transport.start` / `pause` / `stop`. The loop wrap-around is
+ * performed by the TransportBridge via `jumpTo` (a single Transport
+ * start-with-offset) — keeping the heavy scheduling logic here simple.
  */
 
 import * as Tone from 'tone'
@@ -34,11 +36,11 @@ interface TransportLike {
   state: string
   currentTime?: number
   position?: number
-  start: () => void
-  pause: () => void
-  stop: () => void
+  start: (time?: number, offset?: number) => void
+  pause: (time?: number) => void
+  stop: (time?: number) => void
   schedule: (cb: (time: number) => void, time: number) => number
-  clear: (id: number) => void
+  clear: (id: number) => number
   bpm: { value: number }
 }
 
@@ -81,6 +83,25 @@ export class SongTransport {
     transport.stop()
     this.cancelScheduled()
     this.status = 'stopped'
+  }
+
+  /**
+   * Restart playback at the given position (seconds from song start).
+   * Used by the loop wrap-around in the TransportBridge.
+   */
+  jumpTo(positionSeconds: number): void {
+    const transport = asTransport()
+    if (this.status === 'started') {
+      transport.start(undefined, positionSeconds)
+    } else {
+      transport.start(undefined, positionSeconds)
+      transport.pause()
+    }
+  }
+
+  getCurrentPositionSeconds(): number {
+    const transport = asTransport()
+    return transport.position ?? transport.currentTime ?? 0
   }
 
   setTempoMultiplier(song: Song, multiplier: number): void {

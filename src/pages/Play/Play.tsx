@@ -128,6 +128,22 @@ const Play = () => {
           transport.toggleNotation()
           return
         }
+        case '[': {
+          event.preventDefault()
+          transport.markLoopIn()
+          return
+        }
+        case ']': {
+          event.preventDefault()
+          transport.markLoopOut()
+          return
+        }
+        case 'l':
+        case 'L': {
+          event.preventDefault()
+          transport.toggleLoop()
+          return
+        }
         case 'Z':
         case 'z': {
           if (event.shiftKey) {
