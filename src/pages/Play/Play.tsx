@@ -118,15 +118,25 @@ const Play = () => {
         }
         case 'f':
         case 'F': {
-          event.preventDefault()
-          transport.toggleFallingNotes()
-          return
+          // F is also a piano key (F#4 black row). Modifier requires
+          // Shift to disambiguate — bare F fires noteOn like any key.
+          if (event.shiftKey) {
+            event.preventDefault()
+            transport.toggleFallingNotes()
+            return
+          }
+          break
         }
         case 'n':
         case 'N': {
-          event.preventDefault()
-          transport.toggleNotation()
-          return
+          // Same reasoning as F: N is A3 on the bottom row. Modifier
+          // requires Shift+N; bare N plays the note.
+          if (event.shiftKey) {
+            event.preventDefault()
+            transport.toggleNotation()
+            return
+          }
+          break
         }
         case '[': {
           event.preventDefault()

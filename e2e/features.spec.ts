@@ -94,19 +94,32 @@ test.describe('F1 — UX', () => {
     expect(status?.length ?? 0).toBeGreaterThan(0)
   })
 
-  test('F toggles FallingNotes — DOM and visual state both update', async ({ page }) => {
+  test('Shift+F toggles FallingNotes — DOM and visual state both update', async ({ page }) => {
     await page.goto('/')
     await unlockAudio(page)
     // FallingNotes should start visible.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
-    // Press F → display:none on the canvas (aria-hidden with no label).
-    await page.keyboard.press('f')
+    // Press Shift+F → toggles (visibility:hidden, not display:none,
+    // so layout doesn't shift — verified by separate probe).
+    await page.keyboard.press('Shift+f')
     await page.waitForTimeout(200)
-    // The lane is rendered but `display: none` — verify by visibility.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeHidden()
-    // Press F again → reappears.
-    await page.keyboard.press('f')
+    // Press Shift+F again → reappears.
+    await page.keyboard.press('Shift+f')
     await page.waitForTimeout(200)
+    await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
+  })
+
+  test('bare F does not toggle falling notes (modifier is Shift+F)', async ({ page }) => {
+    await page.goto('/')
+    await unlockAudio(page)
+    // FallingNotes should still be visible initially.
+    await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
+    // Bare F must not toggle (it falls through to noteOn, which is a
+    // no-op for unmapped F).
+    await page.keyboard.press('f')
+    await page.waitForTimeout(300)
+    // After bare F, FallingNotes must still be visible.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
   })
 
@@ -146,16 +159,32 @@ test.describe('F1 — UX', () => {
 })
 
 test.describe('F2 — Notation + loop + catalog', () => {
-  test('N toggles Notation visibility', async ({ page }) => {
+  test('Shift+N toggles Notation visibility', async ({ page }) => {
     await page.goto('/')
     await unlockAudio(page)
     await expect(page.locator('[aria-label="Music notation"]')).toBeVisible()
-    await page.keyboard.press('n')
+    await page.keyboard.press('Shift+n')
     await page.waitForTimeout(150)
     await expect(page.locator('[aria-label="Music notation"]')).toBeHidden()
-    await page.keyboard.press('n')
+    await page.keyboard.press('Shift+n')
     await page.waitForTimeout(150)
     await expect(page.locator('[aria-label="Music notation"]')).toBeVisible()
+  })
+
+  test('bare N plays the A3 note on the bottom row', async ({ page }) => {
+    await page.goto('/')
+    await unlockAudio(page)
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(200)
+    await page.locator('body').focus()
+    await page.keyboard.down('n')
+    await page.waitForTimeout(150)
+    // N is rendered on the bottom row of VisualPiano; pressing it must
+    // highlight that key (and only that key).
+    const piano = page.locator('[aria-label="QWERTY keyboard visualization"]')
+    const nKey = piano.locator('span:text-is("N")').first()
+    await expect(nKey).toBeVisible()
+    await page.keyboard.up('n')
   })
 
   test('Loop [ / ] + L mark a region without crashing', async ({ page }) => {

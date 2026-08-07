@@ -82,6 +82,7 @@ describe('LayoutEngine — empty layout', () => {
   })
 
   it('does not flag any modifier', () => {
-    expect(engine.isModifier('f')).toBe(false)
+    expect(engine.isModifier('Shift+f')).toBe(false)
+    expect(engine.isModifier('1')).toBe(false)
   })
 })

@@ -40,8 +40,12 @@ for (const [index, key] of homeRow.entries()) {
   mappings[key] = { note: WHITE_KEYS[index], octave: 4 }
 }
 
+// Bottom row spans octave 3 (C3..B3) — same letter→pitch mapping as
+// the home row, one octave down. Each QWERTY key maps to a unique
+// pitch; F/G/A/B on the bottom row (V/B/N/M) must NOT duplicate the
+// home-row pitches (F/G/A/B → F4/G4/A4/B4).
 for (const [index, key] of bottomRow.entries()) {
-  mappings[key] = { note: WHITE_KEYS[index], octave: index < 3 ? 3 : 4 }
+  mappings[key] = { note: WHITE_KEYS[index], octave: 3 }
 }
 
 for (const [index, key] of blackRow.entries()) {
@@ -53,7 +57,7 @@ for (const key of homeRow) groupsRecord[key] = 'white'
 for (const key of bottomRow) groupsRecord[key] = 'white'
 for (const key of blackRow) groupsRecord[key] = 'black'
 
-const modifierKeys = ['1', '2', '3', '4', '5', '9', '0', 'f', ' '] as const
+const modifierKeys = ['1', '2', '3', '4', '5', '9', '0', ' ', 'Shift+f', 'Shift+n'] as const
 for (const key of modifierKeys) groupsRecord[key] = 'modifier'
 
 const groups: LayoutGroups = groupsRecord
@@ -66,7 +70,8 @@ const modifiers: Record<string, string> = {
   '5': 'timbre-5',
   '9': 'timbre-cycle-prev',
   '0': 'timbre-cycle-next',
-  f: 'toggle-falling-notes',
+  'Shift+f': 'toggle-falling-notes',
+  'Shift+n': 'toggle-notation',
   ' ': 'sustain',
   'Shift+z': 'octave-down',
   'Shift+x': 'octave-up',
