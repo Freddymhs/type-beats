@@ -37,12 +37,23 @@ export interface SongsState {
   byId: Record<string, MutableSong>
   allIds: string[]
   activeSongId: string | null
+  tempoMultiplier: number
+}
+
+const MIN_TEMPO_MULTIPLIER = 0.5
+const MAX_TEMPO_MULTIPLIER = 2.0
+const DEFAULT_TEMPO_MULTIPLIER = 1.0
+
+const clampTempoMultiplier = (value: number): number => {
+  if (!Number.isFinite(value)) return DEFAULT_TEMPO_MULTIPLIER
+  return Math.max(MIN_TEMPO_MULTIPLIER, Math.min(MAX_TEMPO_MULTIPLIER, value))
 }
 
 const initialState: SongsState = {
   byId: {},
   allIds: [],
   activeSongId: null,
+  tempoMultiplier: DEFAULT_TEMPO_MULTIPLIER,
 }
 
 export const songsSlice = createSlice({
@@ -68,8 +79,31 @@ export const songsSlice = createSlice({
     setActiveSong(state, action: PayloadAction<string | null>) {
       state.activeSongId = action.payload
     },
+    cycleActiveSong(state, action: PayloadAction<1 | -1>) {
+      const direction = action.payload
+      const { allIds, activeSongId } = state
+      if (allIds.length === 0) return
+      const currentIndex = activeSongId === null ? -1 : allIds.indexOf(activeSongId)
+      const nextIndex =
+        currentIndex === -1
+          ? direction > 0
+            ? 0
+            : allIds.length - 1
+          : (currentIndex + direction + allIds.length) % allIds.length
+      state.activeSongId = allIds[nextIndex] ?? null
+    },
+    setTempoMultiplier(state, action: PayloadAction<number>) {
+      state.tempoMultiplier = clampTempoMultiplier(action.payload)
+    },
+    bumpTempoMultiplier(state, action: PayloadAction<number>) {
+      state.tempoMultiplier = clampTempoMultiplier(state.tempoMultiplier + action.payload)
+    },
   },
 })
+
+export const SONGS_TEMPO_MIN = MIN_TEMPO_MULTIPLIER
+export const SONGS_TEMPO_MAX = MAX_TEMPO_MULTIPLIER
+export const SONGS_TEMPO_DEFAULT = DEFAULT_TEMPO_MULTIPLIER
 
 export const songsActions = songsSlice.actions
 export const songsReducer = songsSlice.reducer

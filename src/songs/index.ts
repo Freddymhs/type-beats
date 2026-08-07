@@ -20,6 +20,8 @@ export { SCARBOROUGH_FAIR } from './pd/scarborough-fair.ts'
 export { TETRIS } from './pd/tetris.ts'
 export { TWINKLE } from './pd/twinkle.ts'
 
+export { SongTransport, getSongTransport, __resetSongTransportForTests } from './SongTransport.ts'
+
 export const PD_STARTER_SONGS: ReadonlyArray<Song> = [
   TETRIS,
   ODE_TO_JOY,

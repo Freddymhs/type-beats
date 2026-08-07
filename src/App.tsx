@@ -18,6 +18,7 @@ import { useRegisterSW } from 'virtual:pwa-register/react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import { AudioBridge } from './audio/index.ts'
+import { TransportBridge } from './songs/TransportBridge.tsx'
 import { Layout } from './components/Layout/index.ts'
 import { Play } from './pages/Play/index.ts'
 import { Settings } from './pages/Settings/index.ts'
@@ -30,6 +31,7 @@ const App = () => {
   return (
     <BrowserRouter>
       <AudioBridge />
+      <TransportBridge />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/play" {...REDIRECT_REPLACE} />} />
