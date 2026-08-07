@@ -21,7 +21,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useDispatch } from 'react-redux'
 
 import { useToneManager } from '../audio/ToneContext.tsx'
-import { useLayoutEngine } from '../layout/LayoutContext.tsx'
+import { useLayoutEngine } from '../layout/LayoutContext.ts'
 import { audioActions } from '../store/audioSlice.ts'
 import { midiPitch, velocity as makeVelocity } from '../types/index.ts'
 import type { MidiPitch } from '../types/index.ts'

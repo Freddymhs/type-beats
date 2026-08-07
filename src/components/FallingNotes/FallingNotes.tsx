@@ -24,13 +24,14 @@ import { pitchClassToSemitone } from '../../types/index.ts'
 import type { Note } from '../../types/index.ts'
 import type { RootState } from '../../store/index.ts'
 
-import styles from './FallingNotes.module.css'
+import {
+  FALLING_NOTES_LOOK_AHEAD_SECONDS as LOOK_AHEAD_SECONDS,
+  FALLING_NOTES_LOOK_BEHIND_SECONDS as LOOK_BEHIND_SECONDS,
+  FALLING_NOTES_PIXELS_PER_SECOND as PIXELS_PER_SECOND,
+  FALLING_NOTES_HIT_LINE_HEIGHT_REM as HIT_LINE_HEIGHT_REM,
+} from './FallingNotes.constants.ts'
 
-const LOOK_AHEAD_SECONDS = 4
-const LOOK_BEHIND_SECONDS = 0.25
-const PIXELS_PER_SECOND = 100
-const FALL_TRAVEL_HEIGHT = LOOK_AHEAD_SECONDS * PIXELS_PER_SECOND
-const HIT_LINE_HEIGHT_REM = 1.5
+import styles from './FallingNotes.module.css'
 
 const PITCH_COLORS = [
   'var(--note-c)',
@@ -173,8 +174,3 @@ const FallingNotesComponent = ({ notes }: FallingNotesProps) => {
 }
 
 export const FallingNotes = memo(FallingNotesComponent)
-
-// Constants exported for tests and future tuning.
-export const __FALLING_NOTES_LOOK_AHEAD_SECONDS = LOOK_AHEAD_SECONDS
-export const __FALLING_NOTES_PIXELS_PER_SECOND = PIXELS_PER_SECOND
-export const __FALLING_NOTES_FALL_TRAVEL_HEIGHT = FALL_TRAVEL_HEIGHT

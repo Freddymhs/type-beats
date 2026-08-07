@@ -25,8 +25,11 @@ vi.mock('./audio/ToneContext.tsx', () => ({
   }),
 }))
 
-vi.mock('./layout/LayoutContext.tsx', () => ({
+vi.mock('./layout/LayoutEngineProvider.tsx', () => ({
   LayoutEngineProvider: ({ children }: { children: ReactNode }) => children,
+}))
+
+vi.mock('./layout/LayoutContext.ts', () => ({
   useLayoutEngine: () => ({
     getNote: () => undefined,
     getKey: () => undefined,

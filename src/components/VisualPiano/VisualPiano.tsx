@@ -12,9 +12,8 @@
 import { memo, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
-import { useLayoutEngine } from '../../layout/LayoutContext.tsx'
+import { useLayoutEngine } from '../../layout/LayoutContext.ts'
 import type { RootState } from '../../store/index.ts'
-import { midiPitch } from '../../types/index.ts'
 
 import styles from './VisualPiano.module.css'
 
@@ -136,7 +135,3 @@ const VisualPianoComponent = () => {
 }
 
 export const VisualPiano = memo(VisualPianoComponent)
-
-// Re-export the pitch brand so future FallingNotes can mirror pressed pitches
-// without re-reading the layout engine.
-export const visualPianoPitch = midiPitch

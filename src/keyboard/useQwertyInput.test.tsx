@@ -31,8 +31,11 @@ vi.mock('../audio/ToneContext.tsx', () => ({
   useToneManager: () => toneManagerStub,
 }))
 
-vi.mock('../layout/LayoutContext.tsx', () => ({
+vi.mock('../layout/LayoutEngineProvider.tsx', () => ({
   LayoutEngineProvider: ({ children }: { children: ReactNode }) => children,
+}))
+
+vi.mock('../layout/LayoutContext.ts', () => ({
   useLayoutEngine: () => new LayoutEngine(SYNTHESIA_CLASSIC_LAYOUT),
 }))
 
