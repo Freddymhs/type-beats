@@ -4,12 +4,12 @@ Backlog estructurado para el proyecto type-beats. Generado desde `docs/_CONCEPTO
 
 ## Fases
 
-| Fase                                    | Status        | Prioridad | Descripción                                                                |
-| --------------------------------------- | ------------- | --------- | -------------------------------------------------------------------------- |
-| [FASE_0_BASE](./FASE_0_BASE.md)         | ✅ completada | Alta      | Setup base, audio engine, types, store skeleton                            |
-| [FASE_1_MVP](./FASE_1_MVP.md)           | 🔄 activa     | Alta      | QWERTY input, 5 timbres, falling notes, 5 songs PD, PWA                    |
-| [FASE_2_LEARNING](./FASE_2_LEARNING.md) | ⏸️ pendiente  | Media     | Notation, game music catalog, MusicXML import, custom layouts, cooperative |
-| [FASE_3_FUTURE](./FASE_3_FUTURE.md)     | ⏸️ pendiente  | Baja      | Magenta.js AI, audio→MIDI, Supabase sync, RLS                              |
+| Fase                                    | Status        | Prioridad | Descripción                                                           |
+| --------------------------------------- | ------------- | --------- | --------------------------------------------------------------------- |
+| [FASE_0_BASE](./FASE_0_BASE.md)         | ✅ completada | Alta      | Setup base, audio engine, types, store skeleton                       |
+| [FASE_1_MVP](./FASE_1_MVP.md)           | ✅ completada | Alta      | QWERTY input, 5 timbres, falling notes, 5 songs PD, PWA               |
+| [FASE_2_LEARNING](./FASE_2_LEARNING.md) | ✅ completada | Media     | Notation + game catalog + loop + save progress (narrowed scope)       |
+| [FASE_3_FUTURE](./FASE_3_FUTURE.md)     | ❌ descartada | N/A       | Descartada: viola concepto local-first. Items quedan como referencia. |
 
 ## Diagrama de referencia
 

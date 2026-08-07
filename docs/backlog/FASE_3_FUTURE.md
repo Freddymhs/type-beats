@@ -1,8 +1,10 @@
 # FASE 3: FUTURE
 
-**Status**: ⏸️ PENDIENTE
-**Prioridad**: Baja
-**Dependencias**: FASE_2_LEARNING
+**Status**: ❌ DESCARTADA — fuera de alcance por concepto
+**Prioridad**: N/A
+**Dependencias**: N/A
+
+**Razón de descarte**: docs/_CONCEPTO.md define el proyecto como single-user, local-first, sin backend, sin AI, nunca producto de venta. Todos los ítems de esta fase (Magenta.js AI, audio→MIDI, Supabase sync, RLS, MIDI/WAV export, advanced scoring) violan esos invariantes. Quedan como referencia conceptual pero no se implementan.
 
 ## Propósito
 
