@@ -1,7 +1,7 @@
 {
   "project": "type-beats",
   "tech": "Vite + React 19 + TypeScript strict + Tone.js + Redux Toolkit + Dexie.js + vite-plugin-pwa",
-  "current_phase": "FASE_1_MVP",
+  "current_phase": "FASE_2_LEARNING",
   "phases": {
     "FASE_0_BASE": {
       "status": "completed",
@@ -16,10 +16,27 @@
       "total": 11
     },
     "FASE_2_LEARNING": {
-      "status": "pending",
-      "tasks": 0,
-      "completed": 0,
-      "total": 11
+      "status": "completed",
+      "scope": "narrowed",
+      "tasks": 5,
+      "completed": 5,
+      "total": 5,
+      "delivered": [
+        "Notation component (VexFlow stave + active-note highlight)",
+        "Game music catalog (StarCraft Terran/Protoss/Zerg, Zelda OoT, MegaMan 1, Metroid, Final Fantasy Prelude)",
+        "Loop section ([ / ] mark in/out, L toggle, visual indicator)",
+        "Dexie schema v2 with progress.sectionsMastered + backfill upgrade",
+        "Progress save middleware (throttled Dexie write on song end / section mastered)"
+      ],
+      "deferred_to_FASE_3_FUTURE": [
+        "MusicXML import (Tarea 2.D)",
+        "MIDI import via @tonejs/midi (Tarea 2.E)",
+        "Custom layouts editor (Tarea 2.F)",
+        "Cooperative mode WebSocket (Tarea 2.G)",
+        "Music theory overlay (Tarea 2.H)",
+        "Mobile landscape mode (Tarea 2.K)",
+        "Library page UI (Tarea 2.C — only catalog data shipped; no /library page yet)"
+      ]
     },
     "FASE_3_FUTURE": {
       "status": "pending",
@@ -29,8 +46,8 @@
     }
   },
   "totals": {
-    "tasks_pending": 17,
-    "tasks_completed": 17
+    "tasks_pending": 6,
+    "tasks_completed": 22
   },
   "concept_source": "DEVELOPMENT/concept-type-beats.md",
   "created_at": "2026-07-26",
