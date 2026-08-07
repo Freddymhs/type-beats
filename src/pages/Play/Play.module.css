@@ -31,3 +31,38 @@
   border-color: #3a4b75;
   outline: none;
 }
+
+.portraitNotice {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 14, 26, 0.94);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.portraitNotice[data-show='true'] {
+  display: flex;
+}
+
+.portraitNotice p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 22rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 1024px), (orientation: portrait) and (max-width: 1024px) {
+  .play {
+    padding-bottom: 0.25rem;
+  }
+}
+
+@media (orientation: portrait) {
+  .portraitNotice[data-show='true'] {
+    display: flex;
+  }
+}

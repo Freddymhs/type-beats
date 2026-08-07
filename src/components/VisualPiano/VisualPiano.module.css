@@ -13,6 +13,24 @@
   height: 6rem;
 }
 
+@media (max-width: 1024px) {
+  .row {
+    height: 4rem;
+  }
+  .piano {
+    padding: 0.5rem;
+  }
+  .label {
+    font-size: 0.55rem;
+  }
+}
+
+@media (orientation: portrait) {
+  .row {
+    height: 2.5rem;
+  }
+}
+
 .blackRow {
   position: absolute;
   top: 0;

@@ -174,7 +174,36 @@ const Play = () => {
       {!audioUnlocked && <UnlockGate onUnlock={handleUnlock} />}
       <FallingNotes />
       <VisualPiano />
+      <PortraitNotice />
     </section>
+  )
+}
+
+const PortraitNotice = () => {
+  const [isPortrait, setIsPortrait] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(orientation: portrait)')
+    // Defer to a microtask so the initial sync read happens after the
+    // first render (avoids the cascading-render warning the linter
+    // flags for setState inside useEffect).
+    queueMicrotask(() => {
+      setIsPortrait(query.matches)
+    })
+    const onChange = (event: MediaQueryListEvent) => {
+      setIsPortrait(event.matches)
+    }
+    query.addEventListener('change', onChange)
+    return () => {
+      query.removeEventListener('change', onChange)
+    }
+  }, [])
+
+  return (
+    <div className={styles.portraitNotice} data-show={isPortrait} role="status">
+      <p>type-beats is designed for landscape. Rotate your device to play.</p>
+    </div>
   )
 }
 
