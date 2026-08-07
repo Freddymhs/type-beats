@@ -43,6 +43,7 @@ export interface QwertyInputHandle {
   readonly noteOn: (key: string) => void
   readonly noteOff: (key: string) => void
   readonly panic: () => void
+  readonly setSustainHeld: (held: boolean) => void
 }
 
 export const useQwertyInput = ({ velocity }: UseQwertyInputOptions): QwertyInputHandle => {
@@ -50,6 +51,7 @@ export const useQwertyInput = ({ velocity }: UseQwertyInputOptions): QwertyInput
   const layoutEngine = useLayoutEngine()
   const dispatch = useDispatch()
   const held = useRef<Map<string, MidiPitch>>(new Map())
+  const sustainHeld = useRef<boolean>(false)
 
   // Mirror velocity into a ref so the listener callback reads the latest
   // value without re-binding on every state change (which would lose the
@@ -81,6 +83,7 @@ export const useQwertyInput = ({ velocity }: UseQwertyInputOptions): QwertyInput
       const pitch = held.current.get(normalized)
       if (pitch === undefined) return
       held.current.delete(normalized)
+      if (sustainHeld.current) return
       toneManager.releaseNote(pitch)
       dispatch(audioActions.noteOff(pitch))
     },
@@ -95,5 +98,22 @@ export const useQwertyInput = ({ velocity }: UseQwertyInputOptions): QwertyInput
     held.current.clear()
   }, [toneManager, dispatch])
 
-  return useMemo(() => ({ noteOn, noteOff, panic }), [noteOn, noteOff, panic])
+  const setSustainHeld = useCallback(
+    (value: boolean) => {
+      sustainHeld.current = value
+      if (value) return
+      // sustain released — drop any pitches still held
+      for (const pitch of held.current.values()) {
+        toneManager.releaseNote(pitch)
+        dispatch(audioActions.noteOff(pitch))
+      }
+      held.current.clear()
+    },
+    [toneManager, dispatch],
+  )
+
+  return useMemo(
+    () => ({ noteOn, noteOff, panic, setSustainHeld }),
+    [noteOn, noteOff, panic, setSustainHeld],
+  )
 }

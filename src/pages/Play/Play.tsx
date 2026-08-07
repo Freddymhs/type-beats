@@ -37,7 +37,7 @@ const Play = () => {
   const [audioUnlocked, setAudioUnlocked] = useState(toneManager.isStarted())
   const velocity = useSelector((state: RootState) => state.audio.lastVelocity)
 
-  const { noteOn, noteOff, panic } = useQwertyInput({ velocity })
+  const { noteOn, noteOff, panic, setSustainHeld } = useQwertyInput({ velocity })
   const transport = useTransportActions()
   const dispatch = useAppDispatch()
 
@@ -83,11 +83,16 @@ const Play = () => {
       // Transport shortcuts first — they consume the key before any
       // noteOn attempt.
       switch (event.key) {
-        case ' ':
-        case 'Spacebar': {
+        case 'Tab': {
+          // Cycle songs (Synthesia Classic) and timbres via Tab modifier.
           event.preventDefault()
-          if (event.shiftKey) transport.cyclePrev()
-          else transport.cycleNext()
+          if (event.shiftKey) {
+            transport.cyclePrev()
+            transport.timbreCyclePrev()
+          } else {
+            transport.cycleNext()
+            transport.timbreCycleNext()
+          }
           return
         }
         case 'Enter': {
@@ -110,20 +115,56 @@ const Play = () => {
           transport.tempoUp()
           return
         }
+        case 'f':
+        case 'F': {
+          event.preventDefault()
+          transport.toggleFallingNotes()
+          return
+        }
+        case 'Z':
+        case 'z': {
+          if (event.shiftKey) {
+            event.preventDefault()
+            transport.octaveDown()
+            return
+          }
+          break
+        }
+        case 'X':
+        case 'x': {
+          if (event.shiftKey) {
+            event.preventDefault()
+            transport.octaveUp()
+            return
+          }
+          break
+        }
         default:
           break
       }
 
+      // Space = sustain: hold notes pressed WHILE space is held, release
+      // them on Space keyup.
+      if (event.key === ' ' || event.key === 'Spacebar') {
+        event.preventDefault()
+        setSustainHeld(true)
+        return
+      }
+
       noteOn(event.key)
     },
-    [ensureStarted, noteOn, transport, dispatch],
+    [ensureStarted, noteOn, transport, dispatch, setSustainHeld],
   )
 
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {
+      if (event.key === ' ' || event.key === 'Spacebar') {
+        setSustainHeld(false)
+        return
+      }
       noteOff(event.key)
     },
-    [noteOff],
+    [noteOff, setSustainHeld],
   )
 
   useGlobalKeyEvents({ onKeyDown, onKeyUp })

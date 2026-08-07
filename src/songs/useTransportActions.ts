@@ -1,8 +1,9 @@
 /**
  * useTransportActions — pure actions the consumer wires into a keydown
  * handler. Returns `{ cycleNext, cyclePrev, togglePlay, stop, tempoDown,
- * tempoUp }` so the Play page (or any future page) can route keys without
- * owning the listener itself.
+ * tempoUp, timbreCycleNext, timbreCyclePrev, octaveUp, octaveDown,
+ * toggleFallingNotes }` so the Play page (or any future page) can route
+ * keys without owning the listener itself.
  *
  * The previous incarnation `useTransportShortcuts` registered a window
  * listener directly — that collided with useQwertyInput's listener. Folding
@@ -16,13 +17,23 @@ import { useToneManager } from '../audio/ToneContext.tsx'
 import { useAppDispatch, useAppSelector } from '../store/hooks.ts'
 import { songsActions, SONGS_TEMPO_MAX, SONGS_TEMPO_MIN } from '../store/songsSlice.ts'
 import { audioActions } from '../store/audioSlice.ts'
+import {
+  settingsActions,
+  SETTINGS_OCTAVE_MAX,
+  SETTINGS_OCTAVE_MIN,
+} from '../store/settingsSlice.ts'
 import { getSongTransport } from './SongTransport.ts'
+import { DEFAULT_TIMBRES } from '../types/index.ts'
 import type { RootState } from '../store/index.ts'
 
 const TEMPO_STEP = 0.1
+const OCTAVE_STEP = 1
 
 export const clampTempo = (value: number): number =>
   Math.max(SONGS_TEMPO_MIN, Math.min(SONGS_TEMPO_MAX, value))
+
+export const clampOctave = (value: number): number =>
+  Math.max(SETTINGS_OCTAVE_MIN, Math.min(SETTINGS_OCTAVE_MAX, value))
 
 export interface TransportActions {
   readonly cycleNext: () => void
@@ -31,13 +42,22 @@ export interface TransportActions {
   readonly stop: () => void
   readonly tempoDown: () => void
   readonly tempoUp: () => void
+  readonly timbreCycleNext: () => void
+  readonly timbreCyclePrev: () => void
+  readonly octaveUp: () => void
+  readonly octaveDown: () => void
+  readonly toggleFallingNotes: () => void
 }
+
+const timbreIdAt = (index: number): string | undefined => DEFAULT_TIMBRES[index]?.id
 
 export const useTransportActions = (): TransportActions => {
   const dispatch = useAppDispatch()
   const toneManager = useToneManager()
   const transport = useMemo(() => getSongTransport(toneManager), [toneManager])
   const activeSongId = useAppSelector((state: RootState) => state.songs.activeSongId)
+  const selectedTimbreId = useAppSelector((state: RootState) => state.audio.selectedTimbreId)
+  const currentOctave = useAppSelector((state: RootState) => state.settings.defaultOctave)
 
   const cycleNext = useCallback(() => {
     dispatch(songsActions.cycleActiveSong(1))
@@ -71,5 +91,48 @@ export const useTransportActions = (): TransportActions => {
     dispatch(songsActions.bumpTempoMultiplier(TEMPO_STEP))
   }, [dispatch])
 
-  return { cycleNext, cyclePrev, togglePlay, stop, tempoDown, tempoUp }
+  const timbreCycleNext = useCallback(() => {
+    if (DEFAULT_TIMBRES.length === 0) return
+    const currentIndex = DEFAULT_TIMBRES.findIndex((timbre) => timbre.id === selectedTimbreId)
+    const nextIndex = currentIndex === -1 ? 0 : (currentIndex + 1) % DEFAULT_TIMBRES.length
+    const nextId = timbreIdAt(nextIndex)
+    if (nextId !== undefined) dispatch(audioActions.setSelectedTimbre(nextId))
+  }, [dispatch, selectedTimbreId])
+
+  const timbreCyclePrev = useCallback(() => {
+    if (DEFAULT_TIMBRES.length === 0) return
+    const currentIndex = DEFAULT_TIMBRES.findIndex((timbre) => timbre.id === selectedTimbreId)
+    const previousIndex =
+      currentIndex === -1
+        ? DEFAULT_TIMBRES.length - 1
+        : (currentIndex - 1 + DEFAULT_TIMBRES.length) % DEFAULT_TIMBRES.length
+    const previousId = timbreIdAt(previousIndex)
+    if (previousId !== undefined) dispatch(audioActions.setSelectedTimbre(previousId))
+  }, [dispatch, selectedTimbreId])
+
+  const octaveUp = useCallback(() => {
+    dispatch(settingsActions.setDefaultOctave(currentOctave + OCTAVE_STEP))
+  }, [dispatch, currentOctave])
+
+  const octaveDown = useCallback(() => {
+    dispatch(settingsActions.setDefaultOctave(currentOctave - OCTAVE_STEP))
+  }, [dispatch, currentOctave])
+
+  const toggleFallingNotes = useCallback(() => {
+    dispatch(settingsActions.toggleFallingNotes())
+  }, [dispatch])
+
+  return {
+    cycleNext,
+    cyclePrev,
+    togglePlay,
+    stop,
+    tempoDown,
+    tempoUp,
+    timbreCycleNext,
+    timbreCyclePrev,
+    octaveUp,
+    octaveDown,
+    toggleFallingNotes,
+  }
 }

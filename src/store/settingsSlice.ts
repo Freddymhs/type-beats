@@ -62,3 +62,7 @@ export const settingsSlice = createSlice({
 
 export const settingsActions = settingsSlice.actions
 export const settingsReducer = settingsSlice.reducer
+
+export const SETTINGS_OCTAVE_MIN = MIN_OCTAVE
+export const SETTINGS_OCTAVE_MAX = MAX_OCTAVE
+export const SETTINGS_OCTAVE_DEFAULT = DEFAULT_OCTAVE
