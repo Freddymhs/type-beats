@@ -1,0 +1,73 @@
+.piano {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  user-select: none;
+}
+
+.row {
+  display: flex;
+  position: relative;
+  height: 6rem;
+}
+
+.blackRow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60%;
+  pointer-events: none;
+}
+
+.whiteKey,
+.blackKey {
+  position: relative;
+  border: 1px solid var(--piano-outline);
+  border-radius: 0.25rem;
+  transition:
+    background 80ms ease,
+    box-shadow 80ms ease,
+    opacity 80ms ease;
+}
+
+.whiteKey {
+  flex: 1 1 0;
+  margin-right: 0.125rem;
+  background: rgba(255, 255, 255, 0.04);
+  opacity: 0.6;
+}
+
+.blackKey {
+  position: absolute;
+  top: 0;
+  width: 6%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+  opacity: 0.6;
+}
+
+.whiteKey.pressed,
+.blackKey.pressed {
+  background: var(--piano-pressed);
+  opacity: 1;
+  box-shadow:
+    0 0 0.75rem var(--piano-pressed),
+    inset 0 0 0.5rem rgba(255, 255, 255, 0.7);
+}
+
+.label {
+  position: absolute;
+  bottom: 0.25rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
