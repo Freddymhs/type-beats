@@ -20,6 +20,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AudioBridge } from './audio/index.ts'
 import { TransportBridge } from './songs/TransportBridge.tsx'
 import { Layout } from './components/Layout/index.ts'
+import { LoopIndicator } from './components/LoopIndicator/index.ts'
 import { StatusLine } from './components/StatusLine/index.ts'
 import { Play } from './pages/Play/index.ts'
 import { Settings } from './pages/Settings/index.ts'
@@ -41,6 +42,7 @@ const App = () => {
           <Route path="*" element={<Navigate to="/play" {...REDIRECT_REPLACE} />} />
         </Route>
       </Routes>
+      <LoopIndicator />
       <StatusLine />
     </BrowserRouter>
   )
