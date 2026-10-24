@@ -16,7 +16,9 @@
 import { configureStore } from '@reduxjs/toolkit'
 
 import { audioReducer } from './audioSlice.ts'
+import { hitDetectionMiddleware } from './hitDetectionMiddleware.ts'
 import { layoutReducer } from './layoutSlice.ts'
+import { practiceReducer } from './practiceSlice.ts'
 import { progressListenerMiddleware } from './progressMiddleware.ts'
 import { progressReducer } from './progressSlice.ts'
 import { settingsReducer } from './settingsSlice.ts'
@@ -30,9 +32,12 @@ export const createStore = () =>
       settings: settingsReducer,
       layout: layoutReducer,
       progress: progressReducer,
+      practice: practiceReducer,
     },
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().prepend(progressListenerMiddleware.middleware),
+      getDefaultMiddleware()
+        .prepend(progressListenerMiddleware.middleware)
+        .prepend(hitDetectionMiddleware.middleware),
   })
 
 export const store = createStore()

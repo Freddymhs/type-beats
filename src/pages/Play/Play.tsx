@@ -116,27 +116,28 @@ const Play = () => {
           transport.tempoUp()
           return
         }
-        case 'f':
-        case 'F': {
-          // F is also a piano key (F#4 black row). Modifier requires
-          // Shift to disambiguate — bare F fires noteOn like any key.
-          if (event.shiftKey) {
-            event.preventDefault()
-            transport.toggleFallingNotes()
-            return
-          }
+        case 'F':
+        case 'f': {
+          // F is the F#4 black-row piano key. Modifier is `\` (single key,
+          // no Shift required) so users with Shift+F system shortcuts can
+          // still play F#4 without surprises.
           break
         }
-        case 'n':
-        case 'N': {
-          // Same reasoning as F: N is A3 on the bottom row. Modifier
-          // requires Shift+N; bare N plays the note.
-          if (event.shiftKey) {
-            event.preventDefault()
-            transport.toggleNotation()
-            return
-          }
+        case 'N':
+        case 'n': {
+          // N is the A3 bottom-row piano key. Modifier is `'` (single key,
+          // no Shift required) for the same reason as F.
           break
+        }
+        case '\\': {
+          event.preventDefault()
+          transport.toggleFallingNotes()
+          return
+        }
+        case "'": {
+          event.preventDefault()
+          transport.toggleNotation()
+          return
         }
         case '[': {
           event.preventDefault()
@@ -146,12 +147,6 @@ const Play = () => {
         case ']': {
           event.preventDefault()
           transport.markLoopOut()
-          return
-        }
-        case 'l':
-        case 'L': {
-          event.preventDefault()
-          transport.toggleLoop()
           return
         }
         case 'Z':
@@ -218,7 +213,12 @@ const PortraitNotice = () => {
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return
-    const query = window.matchMedia('(orientation: portrait)')
+    // Per UV-004 (FASE_1.5 heuristic eval): the bare `(orientation:
+    // portrait)` query fired on a landscape 800×600 viewport (likely a
+    // Chromium matchMedia quirk on viewports below 600 px tall). Gate
+    // on both orientation AND a small width so only phones trigger
+    // the notice.
+    const query = window.matchMedia('(orientation: portrait) and (max-width: 1024px)')
     // Defer to a microtask so the initial sync read happens after the
     // first render (avoids the cascading-render warning the linter
     // flags for setState inside useEffect).

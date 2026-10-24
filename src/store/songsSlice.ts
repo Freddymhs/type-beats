@@ -43,7 +43,7 @@ export interface SongsState {
   loopEnabled: boolean
 }
 
-const MIN_TEMPO_MULTIPLIER = 0.5
+const MIN_TEMPO_MULTIPLIER = 0.1
 const MAX_TEMPO_MULTIPLIER = 2.0
 const DEFAULT_TEMPO_MULTIPLIER = 1.0
 

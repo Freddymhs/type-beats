@@ -1,63 +1,58 @@
 /**
- * Synthesia Classic — default 3-octave QWERTY layout.
+ * Synthesia Classic — 3-octave QWERTY layout (per BUG-036).
  *
- * Mapping (canonical Synthesia convention + concept's 3-octave scope):
+ * User upgraded from 2 rows to 3 rows. Top row is the QWERTY letter row
+ * (Q W E R T Y U) mapping octave 5. ASDFGHJ stays in the middle (octave 4).
+ * ZXCVBNM stays on the bottom (octave 3).
  *
- *   Black keys (top row):
- *     W E   T Y U
- *      C# D#  F# G# A#   (octave 4)
+ *   Top row (octave 5): Q W E R T Y U
+ *   Home row (octave 4): A S D F G H J
+ *   Bottom row (octave 3): Z X C V B N M
  *
- *   White keys (home row, octave 4):
- *     A S D F G H J
- *     C D E F G A B
+ * Black keys were removed because W/E/T/Y/U were the previous octave 4
+ * black-key positions — they now serve as octave 5 whites, leaving no
+ * room for an octave 4 black overlay without colliding.
  *
- *   White keys (bottom row, octave 3 + 4):
- *     Z X C V B N M
- *     C D E F G A B
- *
- * Modifiers (top row / edge keys):
- *   - 1..5 → timbre select (synthesia classic: numeric shortcuts)
+ * Modifiers:
+ *   - 1..5 → timbre select
  *   - 9 / 0 → timbre cycle prev/next
- *   - F → falling-notes toggle
+ *   - \ → falling-notes toggle
+ *   - ' → notation toggle
  *   - Space → sustain
  *   - Shift + Z / X → octave down/up
  *
- * Groups: per-key tags ('white' / 'black' / 'modifier') used by CSS Modules.
+ * Groups: per-key tags ('white' / 'modifier') used by CSS Modules.
  */
 
 import type { Layout, LayoutGroups } from '../types/index.ts'
+import { TOP_ROW_KEYS, HOME_ROW_KEYS, BOTTOM_ROW_KEYS } from './rowKeys.ts'
 
 const WHITE_KEYS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const
 
-const homeRow = ['a', 's', 'd', 'f', 'g', 'h', 'j'] as const
-const bottomRow = ['z', 'x', 'c', 'v', 'b', 'n', 'm'] as const
-const blackRow = ['w', 'e', 't', 'y', 'u'] as const
-const blackNotes = ['C#', 'D#', 'F#', 'G#', 'A#'] as const
+const topRow = TOP_ROW_KEYS
+const homeRow = HOME_ROW_KEYS
+const bottomRow = BOTTOM_ROW_KEYS
 
 const mappings: Record<string, { note: string; octave: number }> = {}
+
+for (const [index, key] of topRow.entries()) {
+  mappings[key] = { note: WHITE_KEYS[index], octave: 5 }
+}
 
 for (const [index, key] of homeRow.entries()) {
   mappings[key] = { note: WHITE_KEYS[index], octave: 4 }
 }
 
-// Bottom row spans octave 3 (C3..B3) — same letter→pitch mapping as
-// the home row, one octave down. Each QWERTY key maps to a unique
-// pitch; F/G/A/B on the bottom row (V/B/N/M) must NOT duplicate the
-// home-row pitches (F/G/A/B → F4/G4/A4/B4).
 for (const [index, key] of bottomRow.entries()) {
   mappings[key] = { note: WHITE_KEYS[index], octave: 3 }
 }
 
-for (const [index, key] of blackRow.entries()) {
-  mappings[key] = { note: blackNotes[index], octave: 4 }
-}
-
 const groupsRecord: Record<string, string> = {}
+for (const key of topRow) groupsRecord[key] = 'white'
 for (const key of homeRow) groupsRecord[key] = 'white'
 for (const key of bottomRow) groupsRecord[key] = 'white'
-for (const key of blackRow) groupsRecord[key] = 'black'
 
-const modifierKeys = ['1', '2', '3', '4', '5', '9', '0', ' ', 'Shift+f', 'Shift+n'] as const
+const modifierKeys = ['1', '2', '3', '4', '5', '9', '0', ' ', '\\', "'"] as const
 for (const key of modifierKeys) groupsRecord[key] = 'modifier'
 
 const groups: LayoutGroups = groupsRecord
@@ -70,8 +65,8 @@ const modifiers: Record<string, string> = {
   '5': 'timbre-5',
   '9': 'timbre-cycle-prev',
   '0': 'timbre-cycle-next',
-  'Shift+f': 'toggle-falling-notes',
-  'Shift+n': 'toggle-notation',
+  '\\': 'toggle-falling-notes',
+  "'": 'toggle-notation',
   ' ': 'sustain',
   'Shift+z': 'octave-down',
   'Shift+x': 'octave-up',

@@ -19,6 +19,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import { AudioBridge } from './audio/index.ts'
 import { TransportBridge } from './songs/TransportBridge.tsx'
+import { HintLane } from './components/HintLane/HintLane.tsx'
 import { Layout } from './components/Layout/index.ts'
 import { LoopIndicator } from './components/LoopIndicator/index.ts'
 import { StatusLine } from './components/StatusLine/index.ts'
@@ -34,6 +35,7 @@ const App = () => {
     <BrowserRouter>
       <AudioBridge />
       <TransportBridge />
+      <HintLane />
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Navigate to="/play" {...REDIRECT_REPLACE} />} />

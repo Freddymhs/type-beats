@@ -52,7 +52,10 @@ test.describe('F1 — UX', () => {
     await page.waitForTimeout(400)
     const status = await page.locator('[aria-live="polite"]').first().textContent()
     expect(status?.length ?? 0).toBeGreaterThan(0)
-    expect(status).toMatch(/♩=/)
+    // Tempo is now in a separate persistent indicator. StatusLine itself
+    // shows song + timbre; tempoIndicator shows ♩=.
+    const tempo = await page.locator('[aria-label="Tempo"]').textContent()
+    expect(tempo).toMatch(/♩=/)
   })
 
   test('Alt+1..5 switches timbre — StatusLine updates', async ({ page }) => {
@@ -94,32 +97,24 @@ test.describe('F1 — UX', () => {
     expect(status?.length ?? 0).toBeGreaterThan(0)
   })
 
-  test('Shift+F toggles FallingNotes — DOM and visual state both update', async ({ page }) => {
+  test('Backslash toggles FallingNotes — single-key, no Shift required', async ({ page }) => {
     await page.goto('/')
     await unlockAudio(page)
-    // FallingNotes should start visible.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
-    // Press Shift+F → toggles (visibility:hidden, not display:none,
-    // so layout doesn't shift — verified by separate probe).
-    await page.keyboard.press('Shift+f')
+    await page.keyboard.press('Backslash')
     await page.waitForTimeout(200)
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeHidden()
-    // Press Shift+F again → reappears.
-    await page.keyboard.press('Shift+f')
+    await page.keyboard.press('Backslash')
     await page.waitForTimeout(200)
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
   })
 
-  test('bare F does not toggle falling notes (modifier is Shift+F)', async ({ page }) => {
+  test('Bare F plays the F#4 black-row note (no longer the toggle)', async ({ page }) => {
     await page.goto('/')
     await unlockAudio(page)
-    // FallingNotes should still be visible initially.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
-    // Bare F must not toggle (it falls through to noteOn, which is a
-    // no-op for unmapped F).
     await page.keyboard.press('f')
     await page.waitForTimeout(300)
-    // After bare F, FallingNotes must still be visible.
     await expect(page.locator('[aria-label="Falling notes lane"]')).toBeVisible()
   })
 
@@ -159,14 +154,16 @@ test.describe('F1 — UX', () => {
 })
 
 test.describe('F2 — Notation + loop + catalog', () => {
-  test('Shift+N toggles Notation visibility', async ({ page }) => {
+  test('Apostrophe toggles Notation visibility — single-key, no Shift required', async ({
+    page,
+  }) => {
     await page.goto('/')
     await unlockAudio(page)
     await expect(page.locator('[aria-label="Music notation"]')).toBeVisible()
-    await page.keyboard.press('Shift+n')
+    await page.keyboard.press('Quote')
     await page.waitForTimeout(150)
     await expect(page.locator('[aria-label="Music notation"]')).toBeHidden()
-    await page.keyboard.press('Shift+n')
+    await page.keyboard.press('Quote')
     await page.waitForTimeout(150)
     await expect(page.locator('[aria-label="Music notation"]')).toBeVisible()
   })
@@ -221,5 +218,46 @@ test.describe('F2 — Notation + loop + catalog', () => {
     // Metroid, Final Fantasy. Loose substring match.
     const curated = titles.find((t) => /Terran|Protoss|Zerg|Zelda|Mario|Metroid|Fantasy/i.test(t))
     expect(curated, `titles seen: ${titles.join(' | ')}`).toBeDefined()
+  })
+
+  test('Practice mode: persistent counter shows hits/misses and Miss flash appears', async ({
+    page,
+  }) => {
+    await page.goto('/')
+    await unlockAudio(page)
+    await page.keyboard.press('Enter')
+    await page.waitForTimeout(400)
+
+    // Practice score container is always visible (no fade), separate
+    // from the StatusLine that shows song/timbre/tempo.
+    const score = page.locator('[aria-label="Practice score"]')
+    await expect(score).toBeVisible()
+    const initial = (await score.textContent()) ?? ''
+    expect(initial).toMatch(/\d+/)
+    expect(initial).toMatch(/\d+%/)
+
+    // Press a piano key that's almost certainly off-melody → miss feedback.
+    await page.keyboard.down('m')
+    await page.waitForTimeout(150)
+    await page.keyboard.up('m')
+    await page.waitForTimeout(150)
+
+    // Counter advanced — at least one of hits/misses went up.
+    const after = (await score.textContent()) ?? ''
+    expect(after).not.toEqual(initial)
+    // The flash element with data-result="miss" appears on bad keypress.
+    await expect(page.locator('p[data-result="miss"]')).toBeVisible({ timeout: 1500 })
+  })
+
+  test('Practice mode: VisualPiano highlights upcoming notes (hint feature)', async ({ page }) => {
+    await page.goto('/')
+    await unlockAudio(page)
+    await page.keyboard.press('Enter')
+    // Give the HintLane a couple of rAF ticks to compute + dispatch.
+    await page.waitForTimeout(500)
+    // At least one white key should carry data-hint="true" while a song
+    // is playing (the next unmatched upcoming note).
+    const hinted = page.locator('[data-hint="true"]')
+    await expect(hinted.first()).toBeVisible({ timeout: 3000 })
   })
 })

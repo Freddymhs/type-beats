@@ -37,7 +37,7 @@ export const LoopIndicator = () => {
         {startLabel}s → {endLabel}s
       </span>
       <span className={styles.bracket}>]</span>
-      <span className={styles.state}>{loopEnabled ? 'LOOP' : 'armed'}</span>
+      <span className={styles.state}>{loopEnabled ? '◉ LOOP' : '◯ armed'}</span>
     </p>
   )
 }

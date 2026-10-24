@@ -4,6 +4,7 @@ import { configureStore } from '@reduxjs/toolkit'
 import { act, render, screen } from '@testing-library/react'
 
 import { audioReducer } from '../../store/audioSlice.ts'
+import { practiceReducer } from '../../store/practiceSlice.ts'
 import { settingsReducer } from '../../store/settingsSlice.ts'
 import { songsActions, songsReducer } from '../../store/songsSlice.ts'
 import { StatusLine } from './StatusLine.tsx'
@@ -14,6 +15,7 @@ const buildStore = () =>
       audio: audioReducer,
       songs: songsReducer,
       settings: settingsReducer,
+      practice: practiceReducer,
     },
   })
 

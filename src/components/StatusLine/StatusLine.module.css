@@ -16,3 +16,118 @@
 .status[data-visible='true'] {
   opacity: 1;
 }
+
+.flash {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  font-size: 96px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 30;
+  animation: flashIn 80ms ease-out;
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+}
+
+.counters {
+  position: fixed;
+  bottom: 0.6rem;
+  left: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 0.9rem;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 11;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 0.25rem;
+  background: rgba(20, 28, 48, 0.6);
+  letter-spacing: 0.04em;
+}
+
+.counter[data-kind='hit'] {
+  color: #6ee7b7;
+  border: 1px solid rgba(110, 231, 183, 0.4);
+}
+
+.counter[data-kind='miss'] {
+  color: #fca5a5;
+  border: 1px solid rgba(252, 165, 165, 0.4);
+}
+
+.accuracy {
+  color: rgba(232, 234, 237, 0.75);
+  font-variant-numeric: tabular-nums;
+}
+
+.tempoIndicator {
+  position: fixed;
+  bottom: 0.6rem;
+  right: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: 'JetBrains Mono', 'Menlo', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(232, 234, 237, 0.85);
+  pointer-events: none;
+  z-index: 11;
+  background: rgba(20, 28, 48, 0.5);
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tempoBpm {
+  color: rgba(232, 234, 237, 0.95);
+  font-variant-numeric: tabular-nums;
+}
+
+.tempoPercent {
+  color: rgba(110, 231, 183, 0.85);
+  font-size: 0.75rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid rgba(110, 231, 183, 0.3);
+  border-radius: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tempoHint {
+  color: rgba(232, 234, 237, 0.45);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.03em;
+}
+
+.flash[data-result='hit'] {
+  color: #6ee7b7;
+  text-shadow: 0 0 32px rgba(110, 231, 183, 0.6);
+}
+
+.flash[data-result='miss'] {
+  color: #fca5a5;
+  text-shadow: 0 0 32px rgba(252, 165, 165, 0.6);
+}
+
+@keyframes flashIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}

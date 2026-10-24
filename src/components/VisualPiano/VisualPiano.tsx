@@ -1,46 +1,47 @@
 /**
  * VisualPiano — display-only keyboard, no mouse input.
  *
- * Renders the Synthesia Classic layout (1 visible octave): home row +
- * black-row offsets. Reads `activeNotes` from Redux to highlight pressed
- * keys. CSS Module only — no inline styles.
+ * Per BUG-036: 3 rows (Q-U top octave 5, A-J home octave 4, Z-M bottom
+ * octave 3). Black keys were removed — W/E/T/Y/U were the previous
+ * octave-4 black overlay positions and are now octave-5 whites.
  *
  * Per CLAUDE.md §0: NO mouse/touch handlers. The component is purely a
- * display for QWERTY input.
+ * display for QWERTY input. Active notes highlight on press; upcoming
+ * notes glow as hints.
+ *
+ * Each row is rendered as 7 square keys (matching the user's actual
+ * keyboard shape — ThinkPad photo confirmed). No piano metaphor.
  */
 
 import { memo, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 
 import { useLayoutEngine } from '../../layout/LayoutContext.ts'
+import { TOP_ROW_KEYS, HOME_ROW_KEYS, BOTTOM_ROW_KEYS } from '../../layout/rowKeys.ts'
 import type { RootState } from '../../store/index.ts'
 
 import styles from './VisualPiano.module.css'
+
+const TOP_WHITE_KEYS = TOP_ROW_KEYS
+const HOME_WHITE_KEYS = HOME_ROW_KEYS
+const BOTTOM_WHITE_KEYS = BOTTOM_ROW_KEYS
 
 interface KeyDescriptor {
   readonly key: string
   readonly label: string
   readonly pitch: number
   readonly isBlack: boolean
-  /** Horizontal offset for black keys (as a fraction of white-key width). */
-  readonly offset?: number
 }
-
-const HOME_WHITE_KEYS = ['a', 's', 'd', 'f', 'g', 'h', 'j'] as const
-const BOTTOM_WHITE_KEYS = ['z', 'x', 'c', 'v', 'b', 'n', 'm'] as const
-const BLACK_KEYS: ReadonlyArray<readonly [string, number]> = [
-  // [key, whiteKeyIndexItsBetween (0-based, into HOME row)]
-  ['w', 0.65], // C# between a (C) and s (D)
-  ['e', 1.65], // D# between s (D) and d (E)
-  ['t', 3.5], // F# between f (G) and g (G) — black sits on boundary 3-4
-  ['y', 4.5], // G# between g and h
-  ['u', 5.5], // A# between h and j
-]
 
 const buildKeyDescriptors = (
   layoutEngine: ReturnType<typeof useLayoutEngine>,
 ): ReadonlyArray<KeyDescriptor> => {
   const out: KeyDescriptor[] = []
+  for (const key of TOP_WHITE_KEYS) {
+    const pitch = layoutEngine.getNote(key)
+    if (pitch === undefined) continue
+    out.push({ key, label: key.toUpperCase(), pitch, isBlack: false })
+  }
   for (const key of HOME_WHITE_KEYS) {
     const pitch = layoutEngine.getNote(key)
     if (pitch === undefined) continue
@@ -51,102 +52,82 @@ const buildKeyDescriptors = (
     if (pitch === undefined) continue
     out.push({ key, label: key.toUpperCase(), pitch, isBlack: false })
   }
-  for (const [key, offset] of BLACK_KEYS) {
-    const pitch = layoutEngine.getNote(key)
-    if (pitch === undefined) continue
-    out.push({
-      key,
-      label: key.toUpperCase(),
-      pitch,
-      isBlack: true,
-      offset,
-    })
-  }
   return out
 }
 
 const WhiteKey = memo(
-  ({ descriptor, isPressed }: { descriptor: KeyDescriptor; isPressed: boolean }) => (
-    <div className={`${styles.whiteKey} ${isPressed ? styles.pressed : ''}`.trim()}>
-      <span className={styles.label}>{descriptor.label}</span>
-    </div>
-  ),
-)
-WhiteKey.displayName = 'WhiteKey'
-
-const BlackKey = memo(
   ({
     descriptor,
     isPressed,
-    offsetPercent,
+    isHint = false,
   }: {
     descriptor: KeyDescriptor
     isPressed: boolean
-    offsetPercent: string
-  }) => (
-    <div
-      className={`${styles.blackKey} ${isPressed ? styles.pressed : ''}`.trim()}
-      style={{ left: offsetPercent }}
-    >
-      <span className={styles.label}>{descriptor.label}</span>
-    </div>
-  ),
+    isHint?: boolean
+  }) => {
+    const className = [styles.whiteKey, isPressed ? styles.pressed : '', isHint ? styles.hint : '']
+      .filter(Boolean)
+      .join(' ')
+    return (
+      <div className={className} data-hint={isHint}>
+        <span className={styles.label}>{descriptor.label}</span>
+      </div>
+    )
+  },
 )
-BlackKey.displayName = 'BlackKey'
+WhiteKey.displayName = 'WhiteKey'
 
 const VisualPianoComponent = () => {
   const layoutEngine = useLayoutEngine()
   const activeNotes = useSelector((state: RootState) => state.audio.activeNotes)
+  const hintPitches = useSelector((state: RootState) => state.practice.upcomingHints)
   const activeSet = useMemo(() => new Set(activeNotes), [activeNotes])
+  const hintSet = useMemo(() => new Set(hintPitches), [hintPitches])
 
   const keys = useMemo(() => buildKeyDescriptors(layoutEngine), [layoutEngine])
 
+  const topKeys = keys.filter(
+    (k) => !k.isBlack && TOP_WHITE_KEYS.includes(k.key as (typeof TOP_WHITE_KEYS)[number]),
+  )
   const homeKeys = keys.filter(
     (k) => !k.isBlack && HOME_WHITE_KEYS.includes(k.key as (typeof HOME_WHITE_KEYS)[number]),
   )
   const bottomKeys = keys.filter(
     (k) => !k.isBlack && BOTTOM_WHITE_KEYS.includes(k.key as (typeof BOTTOM_WHITE_KEYS)[number]),
   )
-  const blackKeys = keys.filter((k) => k.isBlack)
 
   return (
     <div className={styles.piano} aria-label="QWERTY keyboard visualization" aria-hidden="true">
+      {/* Row 1: top row (octave 5). No black keys (QWERTYUIOP letters all white). */}
+      <div className={styles.row}>
+        {topKeys.map((descriptor) => (
+          <WhiteKey
+            key={descriptor.key}
+            descriptor={descriptor}
+            isPressed={activeSet.has(descriptor.pitch)}
+            isHint={hintSet.has(descriptor.pitch) && !activeSet.has(descriptor.pitch)}
+          />
+        ))}
+      </div>
+      {/* Row 2: home row (octave 4). No black overlay (W/E/T/Y/U are now octave-5 whites). */}
       <div className={styles.row}>
         {homeKeys.map((descriptor) => (
           <WhiteKey
             key={descriptor.key}
             descriptor={descriptor}
             isPressed={activeSet.has(descriptor.pitch)}
+            isHint={hintSet.has(descriptor.pitch) && !activeSet.has(descriptor.pitch)}
           />
         ))}
-        <div className={styles.blackRow}>
-          {blackKeys.map((descriptor, index) => {
-            // Spread black keys evenly across the home row (7 white keys).
-            // Each black key sits centered between two adjacent home-row whites.
-            const fallbackOffset = `${((index + 1) * 100) / (blackKeys.length + 1)}%`
-            const offsetPair = BLACK_KEYS.find(([k]) => k === descriptor.key)
-            const offsetFraction = offsetPair ? offsetPair[1] : undefined
-            const offsetPercent =
-              offsetFraction === undefined
-                ? fallbackOffset
-                : `calc(${(offsetFraction * 100) / homeKeys.length}% + 0.5rem)`
-            return (
-              <BlackKey
-                key={descriptor.key}
-                descriptor={descriptor}
-                isPressed={activeSet.has(descriptor.pitch)}
-                offsetPercent={offsetPercent}
-              />
-            )
-          })}
-        </div>
       </div>
+      {/* Row 3: bottom row (octave 3). */}
       <div className={styles.row}>
         {bottomKeys.map((descriptor) => (
           <WhiteKey
             key={descriptor.key}
             descriptor={descriptor}
             isPressed={activeSet.has(descriptor.pitch)}
+            isHint={hintSet.has(descriptor.pitch) && !activeSet.has(descriptor.pitch)}
           />
         ))}
       </div>

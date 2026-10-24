@@ -49,11 +49,11 @@ export const PD_STARTER_SONGS: ReadonlyArray<Song> = [
 ]
 
 export const CURATED_SONGS: ReadonlyArray<Song> = [
+  MEGAMAN_1_TITLE,
   STARCRAFT_TERRAN,
   STARCRAFT_PROTOSS,
   STARCRAFT_ZERG,
   ZELDA_OOT_MAIN,
-  MEGAMAN_1_TITLE,
   METROID_TITLE,
   FF_PRELUDE,
 ]

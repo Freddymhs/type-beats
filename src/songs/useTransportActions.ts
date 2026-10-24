@@ -61,8 +61,10 @@ export const useTransportActions = (): TransportActions => {
   const toneManager = useToneManager()
   const transport = useMemo(() => getSongTransport(toneManager), [toneManager])
   const activeSongId = useAppSelector((state: RootState) => state.songs.activeSongId)
+  const songsById = useAppSelector((state: RootState) => state.songs.byId)
   const selectedTimbreId = useAppSelector((state: RootState) => state.audio.selectedTimbreId)
   const currentOctave = useAppSelector((state: RootState) => state.settings.defaultOctave)
+  const tempoMultiplier = useAppSelector((state: RootState) => state.songs.tempoMultiplier)
 
   const cycleNext = useCallback(() => {
     dispatch(songsActions.cycleActiveSong(1))
@@ -75,12 +77,26 @@ export const useTransportActions = (): TransportActions => {
   const togglePlay = useCallback(() => {
     if (activeSongId === null) return
     const status = transport.getStatus()
+    // Per BUG-032/033: when the song finished naturally, Tone.Transport
+    // keeps running but no notes are scheduled (cancelScheduled cleared
+    // them). Re-load the song from scratch to re-schedule every note at
+    // its correct offset, then play from position 0.
+    const song = songsById[activeSongId]
+    if (song !== undefined) {
+      const songDuration = song.notes.reduce((max, n) => Math.max(max, n.startTime + n.duration), 0)
+      if (status.positionSeconds >= songDuration) {
+        transport.stop()
+        transport.loadSong(song, tempoMultiplier)
+        transport.play()
+        return
+      }
+    }
     if (status.state === 'started') {
       transport.pause()
     } else {
       transport.play()
     }
-  }, [transport, activeSongId])
+  }, [transport, activeSongId, songsById, tempoMultiplier])
 
   const stop = useCallback(() => {
     transport.stop()
@@ -132,12 +148,17 @@ export const useTransportActions = (): TransportActions => {
   }, [dispatch])
 
   const markLoopIn = useCallback(() => {
-    dispatch(songsActions.setLoopStart(transport.getCurrentPositionSeconds()))
-  }, [dispatch, transport])
+    // Per BUG-023: store loop boundaries in song seconds so tempo changes
+    // don't shift the region. transport.getCurrentPositionSeconds() is
+    // wall-clock elapsed; multiply by tempoMultiplier to convert.
+    const safeMultiplier = tempoMultiplier > 0 ? tempoMultiplier : 1
+    dispatch(songsActions.setLoopStart(transport.getCurrentPositionSeconds() * safeMultiplier))
+  }, [dispatch, transport, tempoMultiplier])
 
   const markLoopOut = useCallback(() => {
-    dispatch(songsActions.setLoopEnd(transport.getCurrentPositionSeconds()))
-  }, [dispatch, transport])
+    const safeMultiplier = tempoMultiplier > 0 ? tempoMultiplier : 1
+    dispatch(songsActions.setLoopEnd(transport.getCurrentPositionSeconds() * safeMultiplier))
+  }, [dispatch, transport, tempoMultiplier])
 
   const toggleLoop = useCallback(() => {
     dispatch(songsActions.toggleLoop())

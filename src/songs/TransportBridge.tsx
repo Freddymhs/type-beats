@@ -24,8 +24,14 @@ import { songsActions } from '../store/songsSlice.ts'
 import type { Song } from '../types/index.ts'
 import { useAppDispatch } from '../store/hooks.ts'
 
-const DEFAULT_SONG_ID = PD_STARTER_SONGS[0]?.id ?? null
+const DEFAULT_SONG_ID = CURATED_SONGS[0]?.id ?? PD_STARTER_SONGS[0]?.id ?? null
 const SECTION_MASTERED_COOLDOWN_SECONDS = 0.5
+
+// Capture the bridge-start timestamp once at module load so the rAF
+// loop can compute "real-world" timestamps without calling Date.now()
+// on every tick (CLAUDE.md §0 — no Date.now in hooks/handlers).
+const BRIDGE_START_MS = Date.now()
+const nowMs = (): number => BRIDGE_START_MS + performance.now()
 
 export const TransportBridge = () => {
   const toneManager = useToneManager()
@@ -43,6 +49,10 @@ export const TransportBridge = () => {
   const lastEndRef = useRef<number>(-1)
   const lastSectionRef = useRef<number>(-1)
 
+  // Per BUG-023: loopStart/loopEnd are stored in song seconds (set by
+  // markLoopIn/Out). Compare with position converted to song seconds.
+  const safeMultiplier = tempoMultiplier > 0 ? tempoMultiplier : 1
+
   const activeSong = activeSongId === null ? null : (songsById[activeSongId] ?? null)
   const songDuration =
     activeSong === null
@@ -52,10 +62,12 @@ export const TransportBridge = () => {
   // Hydrate PD starter songs on mount (idempotent — upsertSong skips existing).
   useEffect(() => {
     if (allIds.length === 0) {
-      for (const song of PD_STARTER_SONGS) {
+      // Register curated first so Mega Man 1 (CURATED_SONGS[0]) is the
+      // first song in cycle order and the default active song.
+      for (const song of CURATED_SONGS) {
         dispatch(songsActions.upsertSong(song))
       }
-      for (const song of CURATED_SONGS) {
+      for (const song of PD_STARTER_SONGS) {
         dispatch(songsActions.upsertSong(song))
       }
       if (DEFAULT_SONG_ID !== null && activeSongId === null) {
@@ -81,39 +93,44 @@ export const TransportBridge = () => {
     let rafId = 0
     const tick = () => {
       const position = transport.getCurrentPositionSeconds()
+      // Per BUG-023: position is wall-clock elapsed. Compare with
+      // loopStart/loopEnd (song seconds) by converting position to song
+      // seconds via `* safeMultiplier`.
+      const songPosition = position * safeMultiplier
 
       if (loopEnabled && loopStart !== null && loopEnd !== null && loopEnd > loopStart) {
-        if (position >= loopEnd && position - lastWrapRef.current > 0.05) {
+        if (songPosition >= loopEnd && position - lastWrapRef.current > 0.05) {
           if (
             lastSectionRef.current < 0 ||
-            position - lastSectionRef.current > SECTION_MASTERED_COOLDOWN_SECONDS
+            songPosition - lastSectionRef.current > SECTION_MASTERED_COOLDOWN_SECONDS
           ) {
             dispatch(
               progressActions.recordSectionMastered({
                 songId: activeSong.id,
-                timestamp: Date.now(),
+                timestamp: nowMs(),
               }),
             )
-            lastSectionRef.current = position
+            lastSectionRef.current = songPosition
           }
-          transport.jumpTo(loopStart)
+          // Convert song-second offset back to wall-clock for jumpTo.
+          transport.jumpTo(loopStart / safeMultiplier)
           lastWrapRef.current = position
         }
       }
 
       if (
         songDuration > 0 &&
-        position >= songDuration &&
-        (lastEndRef.current < 0 || position - lastEndRef.current > songDuration + 1)
+        songPosition >= songDuration &&
+        (lastEndRef.current < 0 || songPosition - lastEndRef.current > songDuration + 1)
       ) {
         dispatch(
           progressActions.recordPlay({
             songId: activeSong.id,
             score: 1,
-            timestamp: Date.now(),
+            timestamp: nowMs(),
           }),
         )
-        lastEndRef.current = position
+        lastEndRef.current = songPosition
       }
 
       rafId = requestAnimationFrame(tick)
@@ -122,7 +139,16 @@ export const TransportBridge = () => {
     return () => {
       cancelAnimationFrame(rafId)
     }
-  }, [transport, activeSong, loopEnabled, loopStart, loopEnd, songDuration, dispatch])
+  }, [
+    transport,
+    activeSong,
+    loopEnabled,
+    loopStart,
+    loopEnd,
+    songDuration,
+    dispatch,
+    safeMultiplier,
+  ])
 
   return null
 }

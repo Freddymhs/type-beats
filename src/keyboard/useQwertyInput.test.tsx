@@ -62,16 +62,16 @@ describe('useQwertyInput', () => {
     toneManagerStub.releaseNote.mockClear()
   })
 
-  it('holds and releases notes through the toneManager', () => {
+  it('holds and releases notes through the toneManager (BUG-046: S=C4)', () => {
     const { result } = renderHook(() => useQwertyInput({ velocity: 100 }), { wrapper: Wrapper })
 
     act(() => {
-      result.current.noteOn('a')
+      result.current.noteOn('s')
     })
     expect(toneManagerStub.holdNote).toHaveBeenCalledWith(midiPitch(60), expect.anything())
 
     act(() => {
-      result.current.noteOff('a')
+      result.current.noteOff('s')
     })
     expect(toneManagerStub.releaseNote).toHaveBeenCalledWith(midiPitch(60))
   })
@@ -85,12 +85,12 @@ describe('useQwertyInput', () => {
     expect(toneManagerStub.holdNote).not.toHaveBeenCalled()
   })
 
-  it('does not double-trigger on repeated noteOn calls', () => {
+  it('does not double-trigger on repeated noteOn calls (BUG-046)', () => {
     const { result } = renderHook(() => useQwertyInput({ velocity: 100 }), { wrapper: Wrapper })
 
     act(() => {
-      result.current.noteOn('a')
-      result.current.noteOn('a')
+      result.current.noteOn('s')
+      result.current.noteOn('s')
     })
     expect(toneManagerStub.holdNote).toHaveBeenCalledTimes(1)
   })

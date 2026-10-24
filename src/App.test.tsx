@@ -9,6 +9,7 @@ import { Layout } from './components/Layout/index.ts'
 import { Play } from './pages/Play/index.ts'
 import { Settings } from './pages/Settings/index.ts'
 import { audioReducer } from './store/audioSlice.ts'
+import { practiceReducer } from './store/practiceSlice.ts'
 import { settingsReducer } from './store/settingsSlice.ts'
 import { layoutReducer } from './store/layoutSlice.ts'
 import { progressReducer } from './store/progressSlice.ts'
@@ -49,6 +50,7 @@ const buildStore = () =>
       settings: settingsReducer,
       layout: layoutReducer,
       progress: progressReducer,
+      practice: practiceReducer,
       songs: songsReducer,
     },
   })

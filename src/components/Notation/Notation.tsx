@@ -40,9 +40,20 @@ import styles from './Notation.module.css'
 const HIGHLIGHT_LOOK_AHEAD_SECONDS = 0.05
 const HIGHLIGHT_LOOK_BEHIND_SECONDS = 0.4
 
-const isChordActive = (startTime: number, currentTime: number): boolean =>
-  currentTime >= startTime - HIGHLIGHT_LOOK_BEHIND_SECONDS &&
-  currentTime <= startTime + HIGHLIGHT_LOOK_AHEAD_SECONDS
+const isChordActive = (
+  startTime: number,
+  currentTime: number,
+  tempoMultiplier: number,
+): boolean => {
+  // Per BUG-023: startTime is song seconds; currentTime is wall-clock
+  // elapsed since transport.start(). Convert startTime to wall-clock.
+  const safeMultiplier = tempoMultiplier > 0 ? tempoMultiplier : 1
+  const wallStart = startTime / safeMultiplier
+  return (
+    currentTime >= wallStart - HIGHLIGHT_LOOK_BEHIND_SECONDS &&
+    currentTime <= wallStart + HIGHLIGHT_LOOK_AHEAD_SECONDS
+  )
+}
 
 const chunkChords = <T,>(
   items: ReadonlyArray<T>,
@@ -130,8 +141,8 @@ export const Notation = () => {
 
   const activeChordIndex = useMemo(() => {
     if (currentTime === null) return -1
-    return chords.findIndex((chord) => isChordActive(chord.startTime, currentTime))
-  }, [chords, currentTime])
+    return chords.findIndex((chord) => isChordActive(chord.startTime, currentTime, tempoMultiplier))
+  }, [chords, currentTime, tempoMultiplier])
 
   // Re-render the stave whenever the song or tempo changes.
   useEffect(() => {
